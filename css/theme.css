@@ -1,0 +1,74 @@
+/* ========================================================
+ * G-LAND v1.0.0 - Theme (Color Palette)
+ * 写真から抽出したカラーパレット
+ * ======================================================== */
+
+:root {
+  /* ===== Primary Green ===== */
+  --gl-green:       #3BB774;   /* 確定ボタン、選択タブ、パット選択 */
+  --gl-green-bg:    #EAF7F0;   /* 非選択タブ、薄い背景 */
+  --gl-green-dark:  #2E9B5B;   /* ホバー / 強調 */
+  --gl-green-hover: #34A768;
+
+  /* ===== Accent Orange (現在ホール / TOTAL) ===== */
+  --gl-orange:      #F9A825;
+  --gl-orange-bg:   #FFECB3;   /* TOTAL 列背景 */
+  --gl-orange-dark: #FFCC66;   /* TOTAL 強調 */
+  --gl-orange-tag:  #FFB74D;   /* 「自分」バッジ */
+
+  /* ===== Red (マイナスボタン / 削除) ===== */
+  --gl-red:         #EF5350;
+  --gl-red-bg:      #FFEBEE;
+  --gl-red-dark:    #C62828;
+
+  /* ===== Score Button Palette (パステル) ===== */
+  --sc-eagle:       #E1BEE7;   /* パー-2 紫 */
+  --sc-birdie:      #F8BBD0;   /* パー-1 ピンク */
+  --sc-par:         #FFF9C4;   /* パー 黄 */
+  --sc-bogey:       #C5CAE9;   /* パー+1 青 */
+  --sc-dbogey:      #D1C4E9;   /* パー+2 薄紫 */
+
+  /* ===== Nav Icon Colors ===== */
+  --nav-home:       #FFB74D;
+  --nav-gworld:     #E53935;
+  --nav-compe:      #FFC107;
+  --nav-mypage:     #42A5F5;
+
+  /* ===== Header (Round History) ===== */
+  --header-blue:    #3D3EE8;
+  --header-blue-bg: #F0F1FF;
+
+  /* ===== Neutral ===== */
+  --white:          #FFFFFF;
+  --gray-50:        #FAFAFA;
+  --gray-100:       #F5F5F5;
+  --gray-200:       #EEEEEE;
+  --gray-300:       #E0E0E0;
+  --gray-400:       #BDBDBD;
+  --gray-500:       #9E9E9E;
+  --gray-600:       #757575;
+  --gray-700:       #616161;
+  --gray-800:       #424242;
+  --text-primary:   #212121;
+  --text-secondary: #616161;
+  --text-tertiary:  #9E9E9E;
+
+  /* ===== Layout ===== */
+  --radius-sm:      6px;
+  --radius-md:      10px;
+  --radius-lg:      14px;
+  --radius-xl:      20px;
+  --radius-pill:    999px;
+
+  --shadow-sm:      0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md:      0 2px 8px rgba(0,0,0,0.10);
+  --shadow-lg:      0 4px 16px rgba(0,0,0,0.14);
+
+  /* ===== Typography ===== */
+  --font-base:      16px;
+  --font-scale:     1;         /* 1 / 1.2 / 1.5 でユーザー設定 */
+
+  --font-family:    -apple-system, BlinkMacSystemFont, "Hiragino Sans",
+                    "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo",
+                    sans-serif;
+}

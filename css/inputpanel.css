@@ -1,0 +1,216 @@
+/* ========================================================
+ * G-LAND v1.0.0 - Input Panel (Legacy Layout)
+ * 5 パステルボタン (イーグル/バーディ/パー/ボギー/Dボギー)
+ * ======================================================== */
+
+.gl-inputpanel {
+  background: var(--white);
+  padding: 4px 10px 10px;
+}
+
+/* ---- モードタブ (シンプル / カウンター) ---- */
+.gl-inputpanel__modetabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.gl-inputpanel__modetab {
+  flex: 1;
+  min-height: 44px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  background: var(--gray-100);
+  transition: all 0.15s;
+}
+.gl-inputpanel__modetab--active {
+  background: var(--gl-green);
+  color: var(--white);
+  box-shadow: var(--shadow-sm);
+}
+.gl-inputpanel__modetab:active { transform: scale(0.98); }
+
+/* ---- Simple: [−] [par-1] [par] [par+1] [+] ---- */
+/* 両端 = 微調整ボタン (少し細め)、中央3個 = パステルで広め */
+.gl-simple {
+  display: grid;
+  grid-template-columns: 52px 1fr 1fr 1fr 52px;
+  gap: 6px;
+  align-items: stretch;
+}
+.gl-simple__btn {
+  min-height: 62px;
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  transition: transform 0.08s, box-shadow 0.12s;
+  border: 1px solid transparent;
+}
+.gl-simple__btn:active { transform: scale(0.94); }
+.gl-simple__btn .num {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+}
+.gl-simple__btn .lbl {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* 中央3個: パステル */
+.gl-simple__btn--birdie { background: var(--sc-birdie); }
+.gl-simple__btn--par    { background: var(--sc-par); }
+.gl-simple__btn--bogey  { background: var(--sc-bogey); }
+
+/* 両端: 微調整 (赤丸・緑丸) */
+.gl-simple__btn--minus {
+  background: var(--gl-red);
+  border-radius: 50%;
+  min-height: 52px;
+  max-height: 62px;
+  aspect-ratio: 1 / 1;
+  align-self: center;
+  justify-self: center;
+}
+.gl-simple__btn--minus .num {
+  color: var(--white);
+  font-size: 28px;
+  font-weight: 800;
+}
+.gl-simple__btn--plus {
+  background: var(--gl-green);
+  border-radius: 50%;
+  min-height: 52px;
+  max-height: 62px;
+  aspect-ratio: 1 / 1;
+  align-self: center;
+  justify-self: center;
+}
+.gl-simple__btn--plus .num {
+  color: var(--white);
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.gl-simple__btn--active {
+  outline: 3px solid var(--gl-orange);
+  outline-offset: -3px;
+  box-shadow: var(--shadow-md);
+}
+
+/* ---- Counter mode: [−] 大きな数字 [＋] ---- */
+.gl-counter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 4px 0;
+}
+.gl-counter__btn {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--white);
+  transition: transform 0.08s;
+}
+.gl-counter__btn:active { transform: scale(0.92); }
+.gl-counter__btn--minus { background: var(--gl-red); }
+.gl-counter__btn--plus  { background: var(--gl-green); }
+.gl-counter__display {
+  flex: 1;
+  max-width: 160px;
+  min-height: 62px;
+  border-radius: var(--radius-md);
+  background: var(--gl-orange-bg);
+  border: 2px solid var(--gl-orange);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--gl-red-dark);
+}
+.gl-counter__display .num { font-size: 32px; font-weight: 800; line-height: 1; }
+.gl-counter__display .lbl {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+/* ---- Putt row (6 ボタン: 0-5) ---- */
+.gl-putt {
+  margin-top: 12px;
+}
+.gl-putt__label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gl-green-dark);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.gl-putt__row {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 5px;
+}
+.gl-putt__btn {
+  min-height: 44px;
+  border-radius: var(--radius-md);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  background: var(--gray-100);
+  border: 1px solid transparent;
+  transition: transform 0.08s;
+}
+.gl-putt__btn:active { transform: scale(0.94); }
+.gl-putt__btn--active {
+  background: var(--gl-green);
+  color: var(--white);
+  box-shadow: var(--shadow-sm);
+}
+/* + ボタンは常に緑 */
+.gl-putt__btn--plus {
+  background: var(--gl-green);
+  color: var(--white);
+  font-size: 20px;
+  font-weight: 800;
+}
+.gl-putt__btn--plus.gl-putt__btn--active {
+  background: var(--gl-green-dark);
+  outline: 3px solid var(--gl-orange);
+  outline-offset: -3px;
+}
+
+/* ---- Commit row (幅いっぱいの緑ボタン 1個) ---- */
+.gl-commit {
+  margin-top: 12px;
+}
+.gl-commit__btn {
+  width: 100%;
+  min-height: 52px;
+  border-radius: var(--radius-md);
+  background: var(--gl-green);
+  color: var(--white);
+  font-size: 17px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: transform 0.08s, background 0.15s;
+}
+.gl-commit__btn:active {
+  transform: scale(0.98);
+  background: var(--gl-green-dark);
+}

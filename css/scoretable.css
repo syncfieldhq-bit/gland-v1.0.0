@@ -1,0 +1,251 @@
+/* ========================================================
+ * G-LAND v1.0.0 - Score Table (Sticky Left + Right + Scroll Middle)
+ * \u30d7\u30ec\u30a4\u30e4\u30fc\u5217(\u5de6\u56fa\u5b9a) + \u4e2d\u592e\u6a2a\u30b9\u30af\u30ed\u30fc\u30eb + TOTAL\u5217(\u53f3\u56fa\u5b9a)
+ * ======================================================== */
+
+.gl-scoretable {
+  background: var(--white);
+  padding: 6px 8px 4px;
+}
+
+.gl-scoretable__wrap {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  position: relative;
+}
+
+.gl-scoretable__table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: max-content;
+  font-size: 14px;
+}
+
+/* ---- \u5171\u901a: \u30bb\u30eb\u5e45 --gl-hole-w \u3092 JS \u3067\u30bb\u30c3\u30c8 (\u5747\u7b49\u5272) ---- */
+.gl-scoretable__table th,
+.gl-scoretable__table td {
+  width: var(--gl-hole-w, 60px);
+  min-width: var(--gl-hole-w, 60px);
+  max-width: var(--gl-hole-w, 60px);
+  padding: 6px 2px;
+  text-align: center;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--gray-100);
+  white-space: nowrap;
+  background: var(--white);
+  box-sizing: border-box;
+}
+
+/* Header */
+.gl-scoretable__table thead th {
+  background: var(--white);
+  color: var(--gl-green-dark);
+  font-weight: 700;
+  font-size: 14px;
+  padding: 10px 2px;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+/* ---- Sticky \u5de6\u56fa\u5b9a: \u30d7\u30ec\u30a4\u30e4\u30fc\u5217 ---- */
+.gl-col-name {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: var(--gl-green-bg);
+  text-align: left;
+  padding-left: 6px;
+  font-weight: 700;
+  border-right: 2px solid var(--gl-green);
+  box-shadow: 2px 0 4px -1px rgba(59,183,116,0.20);
+}
+.gl-scoretable__table thead th.gl-col-name {
+  z-index: 3;
+  background: var(--gl-green-bg);
+  color: var(--gl-green-dark);
+}
+
+/* ---- Sticky \u53f3\u56fa\u5b9a: TOTAL \u5217 ---- */
+.gl-col-total {
+  position: sticky;
+  right: 0;
+  z-index: 2;
+  background: var(--gl-orange-bg);
+  color: var(--gl-red-dark);
+  font-weight: 800;
+  border-left: 2px solid var(--gl-orange);
+  box-shadow: -2px 0 4px -1px rgba(249,168,37,0.20);
+}
+.gl-scoretable__table thead th.gl-col-total {
+  z-index: 3;
+  color: var(--gl-red-dark);
+  background: var(--gl-orange-bg);
+}
+.gl-scoretable__table tbody td.gl-col-total .plusminus {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gl-red);
+  margin-top: 2px;
+}
+
+/* ---- PAR \u884c ---- */
+.gl-row-par td {
+  color: var(--text-secondary);
+  font-weight: 700;
+  font-size: 22px;
+  height: 52px;
+  padding: 10px 2px;
+}
+.gl-row-par td.gl-col-name {
+  background: var(--gl-green-bg) !important;
+  color: var(--gl-green-dark);
+  font-size: 14px;
+}
+.gl-row-par td.gl-col-total {
+  background: var(--gl-orange-bg) !important;
+}
+
+/* ---- \u30d7\u30ec\u30a4\u30e4\u30fc\u884c ---- */
+.gl-row-player td {
+  cursor: pointer;
+  transition: background 0.1s;
+  color: var(--text-primary);
+  font-size: 30px;
+  font-weight: 800;
+  height: 70px;
+  padding: 14px 2px;
+}
+.gl-row-player td.gl-col-name {
+  background: var(--gl-green-bg) !important;
+  cursor: default;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 700;
+}
+.gl-row-player td.gl-col-total {
+  background: var(--gl-orange-bg) !important;
+}
+.gl-row-player td:active { background: var(--gl-green-bg); }
+
+/* \u81ea\u5206\u306e\u884c: \u7dd1\u8272 */
+.gl-scoretable__table tbody tr.gl-row-player--self td {
+  color: var(--gl-green-dark);
+}
+.gl-scoretable__table tbody tr.gl-row-player--self td.gl-col-name {
+  color: var(--text-primary);
+}
+.gl-scoretable__table tbody tr.gl-row-player--self td.gl-col-total {
+  color: var(--gl-red-dark);
+}
+.gl-scoretable__table tbody tr.gl-row-player--self td.gl-cell-empty {
+  color: var(--gray-400);
+}
+.gl-scoretable__table tbody tr.gl-row-player--self td.gl-col-current {
+  color: var(--gl-red-dark);
+}
+
+/* ---- \u30d1\u30c3\u30c8\u884c ---- */
+.gl-row-putt td {
+  background: #FAFDFF;
+  color: var(--text-tertiary);
+  font-size: 18px;
+  font-weight: 600;
+  padding: 8px 2px;
+  height: 42px;
+}
+.gl-row-putt td.gl-col-name {
+  background: var(--gl-green-bg) !important;
+  color: var(--gl-green-dark);
+  font-size: 12px;
+  font-weight: 700;
+}
+.gl-row-putt td.gl-col-total {
+  background: var(--gl-orange-bg) !important;
+}
+.gl-row-putt .putt-icon {
+  margin-right: 2px;
+  font-size: 10px;
+}
+
+/* ---- summary \u5217 (OUT/IN) ---- */
+.gl-scoretable__table tbody td.summary,
+.gl-scoretable__table thead th.summary {
+  background: var(--gl-orange-bg);
+  color: var(--gl-red-dark);
+  font-weight: 800;
+}
+
+/* ---- Empty \u30bb\u30eb ---- */
+.gl-cell-empty {
+  color: var(--gray-400);
+  font-weight: 400;
+}
+
+/* ---- Current \u30db\u30fc\u30eb\u30cf\u30a4\u30e9\u30a4\u30c8 ---- */
+.gl-col-current {
+  outline: 2px solid var(--gl-orange);
+  outline-offset: -2px;
+  background: var(--gl-orange-bg) !important;
+}
+
+/* ---- \u81ea\u5206\u30d0\u30c3\u30b8 ---- */
+.gl-tag-self {
+  display: inline-block;
+  margin-left: 2px;
+  padding: 1px 5px;
+  border-radius: var(--radius-pill);
+  background: var(--gl-orange-tag);
+  color: var(--white);
+  font-size: 9px;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+/* ---- \u7d44\u8868\u793a\u30d8\u30c3\u30c0\u30fc ---- */
+.gl-summary-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px 4px;
+  background: var(--white);
+}
+.gl-summary-header__updated {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+.gl-summary-header__refresh {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gl-green-dark);
+  background: var(--gl-green-bg);
+  border-radius: var(--radius-pill);
+  padding: 4px 10px;
+  transition: transform 0.1s;
+}
+.gl-summary-header__refresh:active { transform: scale(0.95); }
+
+/* ---- wide \u30e2\u30fc\u30c9\u5c02\u7528\u8abf\u6574 ---- */
+.gl-scoretable--wide .gl-row-player td { font-size: 22px; height: 58px; }
+.gl-scoretable--wide .gl-row-par td { font-size: 17px; height: 46px; }
+.gl-scoretable--wide .gl-row-player td.gl-col-name { font-size: 13px; }
+.gl-scoretable--wide .gl-scoretable__table thead th { font-size: 13px; }
+
+/* ==== summary section (OUT/IN) 追加スタイル ==== */
+.gl-scoretable__table tbody td.summary,
+.gl-scoretable__table thead th.summary {
+  background: var(--gl-orange-bg) !important;
+  color: var(--gl-red-dark);
+  font-weight: 800;
+  width: var(--gl-summary-w, 50px) !important;
+  min-width: var(--gl-summary-w, 50px) !important;
+  max-width: var(--gl-summary-w, 50px) !important;
+  border-left: 1px solid var(--gl-orange);
+  border-right: 1px solid var(--gl-orange);
+}
+.gl-scoretable__table tbody td.summary { font-size: 22px; }
+.gl-scoretable__table thead th.summary { font-size: 12px; padding: 8px 2px; }
+.gl-scoretable__table tbody tr.gl-row-player--self td.summary { color: var(--gl-red-dark); }

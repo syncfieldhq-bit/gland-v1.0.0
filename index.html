@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#3BB774">
+  <title>G-LAND v1.0.0</title>
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/scoretable.css">
+  <link rel="stylesheet" href="css/inputpanel.css">
+  <link rel="stylesheet" href="css/modal.css">
+  <link rel="stylesheet" href="css/views.css">
+</head>
+<body>
+  <div id="app">
+    <!-- ==== 👋 初回登録モーダル（強制） ==== -->
+    <div id="onboarding-modal" class="gl-modal gl-modal--force" style="display:none">
+      <div class="gl-modal__backdrop"></div>
+      <div class="gl-modal__panel">
+        <div class="gl-onboarding__hero">
+          <div class="gl-onboarding__logo">G-LAND</div>
+          <div class="gl-onboarding__welcome">ようこそ！</div>
+          <div class="gl-onboarding__sub">まずはプロフィールを登録してください</div>
+        </div>
+        <div class="gl-formgrid">
+          <label class="gl-formgrid__label">ニックネーム<span class="gl-formgrid__req">*</span></label>
+          <input class="gl-formgrid__input" id="ob-nickname" type="text" placeholder="例: たろう" maxlength="20" autocomplete="off">
+          <label class="gl-formgrid__label">苗字（漢字）<span class="gl-formgrid__req">*</span></label>
+          <input class="gl-formgrid__input" id="ob-lastname" type="text" placeholder="例: 山田" maxlength="20" autocomplete="off">
+          <label class="gl-formgrid__label">苗字（かな）<span class="gl-formgrid__req">*</span></label>
+          <input class="gl-formgrid__input" id="ob-lastnamekana" type="text" placeholder="例: やまだ" maxlength="30" autocomplete="off">
+          <div class="gl-onboarding__hint">※ 名前（漢字・かな）はあとでマイページから追加できます</div>
+        </div>
+        <div class="gl-modal__actions">
+          <button class="gl-modal__btn gl-modal__btn--primary" id="ob-submit" disabled>登録してはじめる</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==== 🏠 HOME 画面 ==== -->
+    <div id="view-home" class="gl-view" style="display:none">
+      <div class="gl-hub">
+        <div class="gl-hub__hero">
+          <div class="gl-hub__logo">G World</div>
+          <div class="gl-hub__sub">ようこそ、<span id="home-nickname">ゲスト</span>さん</div>
+        </div>
+        <div class="gl-hub__grid">
+          <button class="gl-hub__card gl-hub__card--golf" data-nav="golf">
+            <div class="gl-hub__card__icon">⛳</div>
+            <div class="gl-hub__card__title">ゴルフ</div>
+            <div class="gl-hub__card__desc">スコアカード / ラウンド開始</div>
+          </button>
+          <button class="gl-hub__card gl-hub__card--mypage" data-nav="mypage">
+            <div class="gl-hub__card__icon">👤</div>
+            <div class="gl-hub__card__title">マイページ</div>
+            <div class="gl-hub__card__desc">プロフィール設定</div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==== ⛳ GOLF メニュー ==== -->
+    <div id="view-golf-menu" class="gl-view" style="display:none">
+      <div class="gl-golfmenu">
+        <div class="gl-golfmenu__title">⛳ ゴルフ</div>
+
+        <!-- コース選択 -->
+        <div class="gl-golfmenu__section">
+          <div class="gl-golfmenu__label">コース選択</div>
+          <button class="gl-golfmenu__select" id="gm-course-btn">
+            <span id="gm-course-label">六甲国際パブリック</span>
+            <span class="gl-golfmenu__chev">▾</span>
+          </button>
+        </div>
+
+        <!-- IN/OUT -->
+        <div class="gl-golfmenu__section">
+          <div class="gl-golfmenu__label">スタート</div>
+          <div class="gl-golfmenu__seg" id="gm-startside">
+            <button class="gl-golfmenu__seg__btn gl-golfmenu__seg__btn--active" data-val="OUT">OUTスタート</button>
+            <button class="gl-golfmenu__seg__btn" data-val="IN">INスタート</button>
+          </div>
+        </div>
+
+        <!-- ラウンド数 -->
+        <div class="gl-golfmenu__section">
+          <div class="gl-golfmenu__label">ラウンド構成</div>
+          <div class="gl-golfmenu__seg" id="gm-rounds">
+            <button class="gl-golfmenu__seg__btn" data-val="HALF">ハーフ</button>
+            <button class="gl-golfmenu__seg__btn gl-golfmenu__seg__btn--active" data-val="1R">1R</button>
+            <button class="gl-golfmenu__seg__btn" data-val="1.5R">1.5R</button>
+          </div>
+        </div>
+
+        <!-- ラウンド開始 -->
+        <button class="gl-golfmenu__start" id="gm-start">▶ ラウンド開始</button>
+
+        <!-- スコアカード / 履歴 -->
+        <div class="gl-golfmenu__row">
+          <button class="gl-golfmenu__sub" id="gm-scorecard">📋 スコアカード</button>
+          <button class="gl-golfmenu__sub" id="gm-history">🕒 スコア履歴</button>
+        </div>
+      </div>
+
+      <!-- コース選択モーダル -->
+      <div id="course-modal" class="gl-modal" style="display:none">
+        <div class="gl-modal__backdrop" data-close="course"></div>
+        <div class="gl-modal__panel">
+          <div class="gl-modal__title">コースを選択</div>
+          <div class="gl-courselist" id="course-list">
+            <button class="gl-courselist__item" data-course="六甲国際パブリック">六甲国際パブリック</button>
+            <button class="gl-courselist__item" data-course="六甲国際 西コース">六甲国際 西コース</button>
+            <button class="gl-courselist__item" data-course="六甲国際 東コース">六甲国際 東コース</button>
+            <button class="gl-courselist__item" data-course="フォレスト三木">フォレスト三木</button>
+          </div>
+          <div class="gl-modal__actions">
+            <button class="gl-modal__btn gl-modal__btn--ghost" data-close="course">キャンセル</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 履歴モーダル -->
+      <div id="history-modal" class="gl-modal" style="display:none">
+        <div class="gl-modal__backdrop" data-close="history"></div>
+        <div class="gl-modal__panel">
+          <div class="gl-modal__title">🕒 スコア履歴</div>
+          <div class="gl-historylist" id="history-list">
+            <div class="gl-historylist__empty">履歴はまだありません</div>
+          </div>
+          <div class="gl-modal__actions">
+            <button class="gl-modal__btn gl-modal__btn--ghost" data-close="history">閉じる</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==== 👤 MYPAGE 画面 ==== -->
+    <div id="view-mypage" class="gl-view" style="display:none">
+      <div class="gl-mypage">
+        <div class="gl-mypage__title">👤 マイページ</div>
+        <div class="gl-mypage__card">
+          <div class="gl-mypage__row"><div class="gl-mypage__k">ニックネーム</div><div class="gl-mypage__v" id="mp-nickname">─</div></div>
+          <div class="gl-mypage__row"><div class="gl-mypage__k">苗字（漢字）</div><div class="gl-mypage__v" id="mp-lastname">─</div></div>
+          <div class="gl-mypage__row"><div class="gl-mypage__k">苗字（かな）</div><div class="gl-mypage__v" id="mp-lastnamekana">─</div></div>
+          <div class="gl-mypage__row"><div class="gl-mypage__k">名前（漢字）</div><div class="gl-mypage__v" id="mp-firstname">─</div></div>
+          <div class="gl-mypage__row"><div class="gl-mypage__k">名前（かな）</div><div class="gl-mypage__v" id="mp-firstnamekana">─</div></div>
+        </div>
+        <button class="gl-mypage__edit" id="mp-edit">✏ プロフィールを編集</button>
+      </div>
+
+      <!-- 編集モーダル -->
+      <div id="profile-modal" class="gl-modal" style="display:none">
+        <div class="gl-modal__backdrop" data-close="profile"></div>
+        <div class="gl-modal__panel">
+          <div class="gl-modal__title">プロフィール編集</div>
+          <div class="gl-formgrid">
+            <label class="gl-formgrid__label">ニックネーム<span class="gl-formgrid__req">*</span></label>
+            <input class="gl-formgrid__input" id="pf-nickname" type="text" placeholder="例: たろう" maxlength="20">
+            <label class="gl-formgrid__label">苗字（漢字）<span class="gl-formgrid__req">*</span></label>
+            <input class="gl-formgrid__input" id="pf-lastname" type="text" placeholder="例: 山田" maxlength="20">
+            <label class="gl-formgrid__label">苗字（かな）<span class="gl-formgrid__req">*</span></label>
+            <input class="gl-formgrid__input" id="pf-lastnamekana" type="text" placeholder="例: やまだ" maxlength="30">
+            <label class="gl-formgrid__label">名前（漢字）</label>
+            <input class="gl-formgrid__input" id="pf-firstname" type="text" placeholder="例: 太郎" maxlength="20">
+            <label class="gl-formgrid__label">名前（かな）</label>
+            <input class="gl-formgrid__input" id="pf-firstnamekana" type="text" placeholder="例: たろう" maxlength="30">
+          </div>
+          <div class="gl-modal__actions">
+            <button class="gl-modal__btn gl-modal__btn--ghost" data-close="profile">キャンセル</button>
+            <button class="gl-modal__btn gl-modal__btn--primary" id="pf-save">保存</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==== ⛳ GOLF スコアカード（既存のスコア機能） ==== -->
+    <div id="view-golf-score" class="gl-view">
+    <div class="gl-golfscore__topbar">
+      <button class="gl-golfscore__back" id="gs-back">← ゴルフメニュー</button>
+    </div>
+    <!-- ==== 上部ツールバー ==== -->
+    <div class="gl-toolbar">
+      <button class="gl-toolbar__btn" id="btn-qr">
+        <span class="gl-toolbar__btn__icon">📷</span>
+        <span class="gl-toolbar__btn__label">招待QR</span>
+      </button>
+      <button class="gl-toolbar__btn" id="btn-line">
+        <span class="gl-toolbar__btn__icon">🔗</span>
+        <span class="gl-toolbar__btn__label">LINE共有</span>
+      </button>
+      <button class="gl-toolbar__btn gl-toolbar__btn--info" id="btn-display">
+        <span class="gl-toolbar__btn__icon">🔢</span>
+        <span class="gl-toolbar__btn__label">スコア表示</span>
+        <span class="gl-toolbar__btn__value" id="display-mode-label" style="font-size:12px">ストローク</span>
+      </button>
+      <button class="gl-toolbar__btn gl-toolbar__btn--accent" id="btn-start">
+        <span class="gl-toolbar__btn__label">後半スタート</span>
+        <span class="gl-toolbar__btn__value" id="start-time-label">15:23</span>
+        <span class="gl-toolbar__btn__label" style="font-size:8px">タップで設定</span>
+      </button>
+      <button class="gl-toolbar__btn gl-toolbar__btn--accent" id="btn-locker">
+        <span class="gl-toolbar__btn__icon">🔒</span>
+        <span class="gl-toolbar__btn__label">ロッカー</span>
+        <span class="gl-toolbar__btn__value" id="locker-label">72</span>
+      </button>
+    </div>
+
+    <!-- ==== セカンダリタブ ==== -->
+    <div class="gl-tabs">
+      <button class="gl-tabs__tab" id="tab-summary">📊 組表示</button>
+      <button class="gl-tabs__tab gl-tabs__tab--active" id="tab-input">✏ スコア入力</button>
+    </div>
+
+    <!-- ==== コンテンツエリア ==== -->
+    <div class="gl-content">
+      <!-- 【入力タブ】 -->
+      <div id="view-input">
+        <div id="scoretable-input-container"></div>
+        <div id="inputpanel-container"></div>
+      </div>
+
+      <!-- 【組表示タブ】 -->
+      <div id="view-summary" style="display:none">
+        <div class="gl-summary-header">
+          <span class="gl-summary-header__updated" id="summary-updated">最終更新 ─</span>
+          <button class="gl-summary-header__refresh" id="btn-refresh">🔄 更新</button>
+        </div>
+        <div id="scoretable-summary-container"></div>
+      </div>
+    </div>
+    </div><!-- /view-golf-score -->
+
+    <!-- ==== 下部ナビゲーション (3タブ) ==== -->
+    <div class="gl-bottomnav">
+      <a class="gl-bottomnav__item" id="nav-home">
+        <span class="gl-bottomnav__item__icon" style="color:var(--nav-home)">🏠</span>
+        <span>ホーム</span>
+      </a>
+      <a class="gl-bottomnav__item gl-bottomnav__item--active" id="nav-golf">
+        <span class="gl-bottomnav__item__icon" style="color:var(--nav-gworld)">⛳</span>
+        <span>ゴルフ</span>
+      </a>
+      <a class="gl-bottomnav__item" id="nav-mypage">
+        <span class="gl-bottomnav__item__icon" style="color:var(--nav-mypage)">👤</span>
+        <span>マイページ</span>
+      </a>
+    </div>
+  </div>
+
+  <script src="js/lib/score_format.js"></script>
+  <script src="js/ui/scoretable.js"></script>
+  <script src="js/ui/inputpanel.js"></script>
+  <script src="js/ui/timepicker.js"></script>
+  <script src="js/ui/lockerpicker.js"></script>
+  <script src="js/lib/qrcode-mini.js"></script>
+  <script src="js/ui/qrmodal.js"></script>
+  <script src="js/prototype_data.js"></script>
+  <script>
+    (function () {
+      "use strict";
+
+      // sendBeacon エラーを黙らせる (file:// でも動くように)
+      if (typeof navigator !== "undefined" && navigator.sendBeacon) {
+        var _origSend = navigator.sendBeacon.bind(navigator);
+        navigator.sendBeacon = function () {
+          try { return _origSend.apply(this, arguments); }
+          catch (e) { return false; }
+        };
+      }
+
+      function showError(msg) {
+        var bar = document.getElementById("gl-errorbar");
+        if (!bar) {
+          bar = document.createElement("div");
+          bar.id = "gl-errorbar";
+          bar.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:9999;background:#EF5350;color:#fff;padding:8px 12px;font-size:12px;font-weight:600;text-align:center;";
+          document.body.appendChild(bar);
+        }
+        bar.textContent = "⚠ " + msg;
+      }
+      window.addEventListener("error", function (e) {
+        // sendBeacon 系エラーは無視
+        if (e.message && /sendBeacon|Beacons?\s+are\s+only\s+supported/i.test(e.message)) return;
+        showError("JSエラー: " + e.message);
+      });
+
+      var HOLES = window.PROTOTYPE_HOLES;
+      if (!HOLES || !HOLES.length) {
+        showError("PROTOTYPE_HOLES が読み込めません");
+        HOLES = [];
+        var pars = [4,4,4,5,4,3,5,3,4, 4,4,4,5,3,4,5,3,4];
+        for (var i = 0; i < 18; i++) {
+          HOLES.push({ holeNumber: i+1, par: pars[i], strokes: null, putts: null });
+        }
+      }
+
+      function cloneHoles(src) {
+        return src.map(function (h) {
+          return { holeNumber:h.holeNumber, par:h.par, strokes:null, putts:null };
+        });
+      }
+      var players = [
+        { name: "佐藤", isSelf: true,  holes: HOLES.slice() },
+        { name: "田中", isSelf: false, holes: cloneHoles(HOLES) },
+        { name: "鈴木", isSelf: false, holes: cloneHoles(HOLES) },
+        { name: "山本", isSelf: false, holes: cloneHoles(HOLES) }
+      ];
+      players[1].holes[0].strokes = 4;
+      players[2].holes[0].strokes = 6;
+
+      var state = {
+        currentTab: "input",
+        currentHole: 1,
+        workingHole: 1,
+        displayMode: "stroke",
+        inputMode: "simple",
+        structure: "18h",
+        players: players,
+        selfIdx: 0,
+        startTime: "15:23",       // 後半スタート時刻 (初期はダミー、ユーザーが開いた時に現在時刻+45分で初期化)
+        startTimeSetByUser: false,  // ユーザーが一度でも確定したか
+        lockerNumber: 72,          // ロッカー番号
+        lastUpdate: null,
+
+        // ナビゲーション
+        currentNav: "golf",          // home | golf | mypage
+        golfSubView: "menu",         // menu | score
+
+        // プロフィール（初回は空→オンボーディングで登録）
+        profile: {
+          nickname: "",
+          lastName: "",
+          lastNameKana: "",
+          firstName: "",
+          firstNameKana: ""
+        },
+
+        // ゴルフメニュー選択値
+        course: "六甲国際パブリック",
+        startSide: "OUT",   // OUT | IN
+        rounds: "1R"        // HALF | 1R | 1.5R
+      };
+
+      function getSelf() { return state.players[state.selfIdx]; }
+      function getSelfHole() {
+        var self = getSelf();
+        for (var i = 0; i < self.holes.length; i++) {
+          if (self.holes[i].holeNumber === state.currentHole) return self.holes[i];
+        }
+        return null;
+      }
+      function getMaxHole() {
+        var self = getSelf();
+        var max = 0;
+        for (var i = 0; i < self.holes.length; i++) {
+          if (self.holes[i].holeNumber > max) max = self.holes[i].holeNumber;
+        }
+        return max;
+      }
+      function fmt2(n) { return n < 10 ? "0" + n : String(n); }
+      function timeNow() {
+        var d = new Date();
+        return fmt2(d.getHours()) + ":" + fmt2(d.getMinutes());
+      }
+
+      function renderInputTable() {
+        var c = document.getElementById("scoretable-input-container");
+        if (!c) return;
+        try {
+          ScoreTable.render(c, {
+            players: [getSelf()],
+            structure: state.structure,
+            currentHole: state.currentHole,
+            displayMode: state.displayMode,
+            mode: "compact"
+          }, {
+            onCellTap: function (hole) {
+              state.currentHole = hole;
+              renderAll();
+            }
+          });
+        } catch (e) {
+          showError("入力タブテーブル: " + e.message);
+        }
+      }
+
+      function renderSummaryTable() {
+        var c = document.getElementById("scoretable-summary-container");
+        if (!c) return;
+        try {
+          ScoreTable.render(c, {
+            players: state.players,
+            structure: state.structure,
+            currentHole: state.currentHole,
+            displayMode: state.displayMode,
+            mode: "wide"  // 全ホール、中央は横スクロールで一度に5ホール分見える
+          }, {
+            onCellTap: function (hole) {
+              state.currentHole = hole;
+              renderSummaryTable();
+            }
+          });
+          var u = document.getElementById("summary-updated");
+          if (u) u.textContent = "最終更新 " + (state.lastUpdate || timeNow());
+        } catch (e) {
+          showError("組表示テーブル: " + e.message);
+        }
+      }
+
+      function renderInputPanel() {
+        var c = document.getElementById("inputpanel-container");
+        if (!c) return;
+        var h = getSelfHole();
+        if (!h) { c.innerHTML = ""; return; }
+        try {
+          InputPanel.render(c, {
+            playerName: getSelf().name,
+            currentHole: state.currentHole,
+            par: h.par,
+            mode: state.inputMode,
+            strokes: h.strokes,
+            putts: h.putts
+          }, {
+            onModeChange: function (m) { state.inputMode = m; renderInputPanel(); },
+            onStrokesChange: function (s) {
+              h.strokes = s;
+              state.lastUpdate = timeNow();
+              renderInputTable();
+              renderInputPanel();
+            },
+            onPuttsChange: function (p) {
+              h.putts = p;
+              state.lastUpdate = timeNow();
+              renderInputTable();
+              renderInputPanel();
+            },
+            onCommit: function () {
+              state.lastUpdate = timeNow();
+              var max = getMaxHole();
+              // ロジック:
+              // (a) 通常入力中 (currentHole === workingHole) → 次ホールに進む、workingHole も進む
+              // (b) 過去のホールを修正中 (currentHole ≠ workingHole) → workingHole に戻る
+              if (state.currentHole === state.workingHole) {
+                if (state.workingHole < max) {
+                  state.workingHole++;
+                  state.currentHole = state.workingHole;
+                }
+              } else {
+                // 修正モード → workingHole に戻る
+                state.currentHole = state.workingHole;
+              }
+              renderAll();
+            }
+          });
+        } catch (e) {
+          showError("入力パネル: " + e.message);
+        }
+      }
+
+      function renderHeader() {
+        var m = document.getElementById("display-mode-label");
+        if (m) {
+          m.textContent =
+            state.displayMode === "stroke" ? "ストローク" :
+            state.displayMode === "plusminus" ? "±表示" : "◎-△";
+        }
+      }
+
+      function renderAll() {
+        renderHeader();
+        if (state.currentTab === "input") {
+          renderInputTable();
+          renderInputPanel();
+        } else {
+          renderSummaryTable();
+        }
+      }
+
+      function switchTab(name) {
+        state.currentTab = name;
+        var tabIn = document.getElementById("tab-input");
+        var tabSu = document.getElementById("tab-summary");
+        var viewIn = document.getElementById("view-input");
+        var viewSu = document.getElementById("view-summary");
+        if (name === "input") {
+          if (tabIn) tabIn.classList.add("gl-tabs__tab--active");
+          if (tabSu) tabSu.classList.remove("gl-tabs__tab--active");
+          if (viewIn) viewIn.style.display = "";
+          if (viewSu) viewSu.style.display = "none";
+        } else {
+          if (tabSu) tabSu.classList.add("gl-tabs__tab--active");
+          if (tabIn) tabIn.classList.remove("gl-tabs__tab--active");
+          if (viewIn) viewIn.style.display = "none";
+          if (viewSu) viewSu.style.display = "";
+        }
+        renderAll();
+      }
+
+      function cycleDisplayMode() {
+        var modes = ["stroke", "plusminus", "symbol"];
+        var idx = modes.indexOf(state.displayMode);
+        state.displayMode = modes[(idx + 1) % modes.length];
+        renderAll();
+      }
+
+      var byId = function (id) { return document.getElementById(id); };
+      var on = function (el, fn) { if (el) el.addEventListener("click", fn); };
+
+      function bind() {
+        on(byId("tab-input"), function () { switchTab("input"); });
+        on(byId("tab-summary"), function () { switchTab("summary"); });
+        on(byId("btn-display"), cycleDisplayMode);
+        on(byId("btn-refresh"), function () {
+          state.lastUpdate = timeNow();
+          renderSummaryTable();
+        });
+
+        var stub = function (label) {
+          return function () { alert(label + " は後のセクションで実装します"); };
+        };
+        // 招待 URL の基盤ドメインを決定:
+        //   file:// (ローカルファイル) ならダミーを使う
+        //   http(s):// なら location.origin + location.pathname のディレクトリ部分を使う
+        //   → 将来的に GitHub Pages なら https://[user].github.io/g-land/ になる
+        var getInviteUrl = function () {
+          var rid = state.roundId || "R-DEMO-001";
+          var base;
+          if (location.protocol === "file:" || !location.origin || location.origin === "null") {
+            base = "https://g-land.example/";  // デプロイ後に実ドメインに差し替え
+          } else {
+            // パスのファイル名は削ってディレクトリのみに
+            var dir = location.pathname.replace(/[^\/]+$/, "");
+            base = location.origin + dir;
+          }
+          return base + "join?r=" + encodeURIComponent(rid);
+        };
+        on(byId("btn-qr"), function () {
+          QRModal.open(getInviteUrl(), "招待QR");
+        });
+        on(byId("btn-line"), function () {
+          // LINE 専用: navigator.share は使わず、必ず LINE を起動
+          var text = "G-LAND ラウンドに合流しましょう！\n" + getInviteUrl();
+          var lineUrl = "https://line.me/R/msg/text/?" + encodeURIComponent(text);
+          // 新しいタブで開く (LINE アプリ/Web へ)
+          window.open(lineUrl, "_blank");
+        });
+        on(byId("btn-start"), function () {
+          // 一度も設定してなければ null → 現在時刻+45分で初期化
+          TimePicker.open(state.startTimeSetByUser ? state.startTime : null, function (val) {
+            state.startTime = val;
+            state.startTimeSetByUser = true;
+            var el = byId("start-time-label");
+            if (el) el.textContent = val;
+          });
+        });
+        on(byId("btn-locker"), function () {
+          LockerPicker.open(state.lockerNumber, function (val) {
+            state.lockerNumber = val;
+            var el = byId("locker-label");
+            if (el) el.textContent = val != null ? val : "─";
+          });
+        });
+        on(byId("nav-home"), function () { switchNav("home"); });
+        on(byId("nav-golf"), function () { switchNav("golf"); });
+        on(byId("nav-mypage"), function () { switchNav("mypage"); });
+
+        // ホームのカード
+        var cards = document.querySelectorAll("[data-nav]");
+        for (var i = 0; i < cards.length; i++) {
+          (function (el) {
+            on(el, function () { switchNav(el.getAttribute("data-nav")); });
+          })(cards[i]);
+        }
+
+        // ゴルフスコアカード→メニューへ戻る
+        on(byId("gs-back"), function () { showGolfSub("menu"); });
+
+        // ゴルフメニュー・コース選択
+        on(byId("gm-course-btn"), function () { openModal("course"); });
+        var courseItems = document.querySelectorAll("#course-list [data-course]");
+        for (var j = 0; j < courseItems.length; j++) {
+          (function (el) {
+            on(el, function () {
+              state.course = el.getAttribute("data-course");
+              var lbl = byId("gm-course-label");
+              if (lbl) lbl.textContent = state.course;
+              closeModal("course");
+            });
+          })(courseItems[j]);
+        }
+
+        // ゴルフメニュー・IN/OUTセグメント
+        bindSegment("gm-startside", function (v) { state.startSide = v; });
+        bindSegment("gm-rounds", function (v) { state.rounds = v; });
+
+        // ラウンド開始・スコアカード
+        on(byId("gm-start"), function () { showGolfSub("score"); });
+        on(byId("gm-scorecard"), function () { showGolfSub("score"); });
+
+        // 履歴
+        on(byId("gm-history"), function () { openModal("history"); });
+
+        // モーダル閉じる（data-close属性）
+        var closers = document.querySelectorAll("[data-close]");
+        for (var k = 0; k < closers.length; k++) {
+          (function (el) {
+            on(el, function () { closeModal(el.getAttribute("data-close")); });
+          })(closers[k]);
+        }
+
+        // マイページ
+        on(byId("mp-edit"), function () {
+          // 現値をフォームに反映
+          byId("pf-nickname").value = state.profile.nickname || "";
+          byId("pf-lastname").value = state.profile.lastName || "";
+          byId("pf-lastnamekana").value = state.profile.lastNameKana || "";
+          byId("pf-firstname").value = state.profile.firstName || "";
+          byId("pf-firstnamekana").value = state.profile.firstNameKana || "";
+          openModal("profile");
+        });
+        // 初回登録モーダル
+        var obInputs = ["ob-nickname", "ob-lastname", "ob-lastnamekana"];
+        var updateObBtn = function () {
+          var ok = true;
+          for (var i = 0; i < obInputs.length; i++) {
+            var v = (byId(obInputs[i]).value || "").trim();
+            if (!v) { ok = false; break; }
+          }
+          var btn = byId("ob-submit");
+          if (btn) btn.disabled = !ok;
+        };
+        for (var oi = 0; oi < obInputs.length; oi++) {
+          var el = byId(obInputs[oi]);
+          if (el) {
+            el.addEventListener("input", updateObBtn);
+            el.addEventListener("change", updateObBtn);
+          }
+        }
+        on(byId("ob-submit"), function () {
+          var nick = (byId("ob-nickname").value || "").trim();
+          var ln = (byId("ob-lastname").value || "").trim();
+          var lnk = (byId("ob-lastnamekana").value || "").trim();
+          if (!nick || !ln || !lnk) return;
+          state.profile.nickname = nick;
+          state.profile.lastName = ln;
+          state.profile.lastNameKana = lnk;
+          saveProfile();
+          renderProfile();
+          renderHome();
+          closeOnboarding();
+          switchNav("home");
+        });
+
+        on(byId("pf-save"), function () {
+          var nick = (byId("pf-nickname").value || "").trim();
+          var ln = (byId("pf-lastname").value || "").trim();
+          var lnk = (byId("pf-lastnamekana").value || "").trim();
+          if (!nick || !ln || !lnk) {
+            alert("ニックネーム・苗字（漢字）・苗字（かな）は必須です");
+            return;
+          }
+          state.profile.nickname = nick;
+          state.profile.lastName = ln;
+          state.profile.lastNameKana = lnk;
+          state.profile.firstName = (byId("pf-firstname").value || "").trim();
+          state.profile.firstNameKana = (byId("pf-firstnamekana").value || "").trim();
+          saveProfile();
+          renderProfile();
+          renderHome();
+          closeModal("profile");
+        });
+      }
+
+      // ====== ナビゲーション・ビュー制御 ======
+      function switchNav(nav) {
+        state.currentNav = nav;
+        // 下部ナビバーのactive切替
+        var navs = { home: "nav-home", golf: "nav-golf", mypage: "nav-mypage" };
+        for (var k in navs) {
+          var el = byId(navs[k]);
+          if (!el) continue;
+          if (k === nav) el.classList.add("gl-bottomnav__item--active");
+          else el.classList.remove("gl-bottomnav__item--active");
+        }
+        // ビューの表示切替
+        showView("view-home", nav === "home");
+        showView("view-mypage", nav === "mypage");
+        if (nav === "golf") {
+          showGolfSub(state.golfSubView);
+        } else {
+          showView("view-golf-menu", false);
+          showView("view-golf-score", false);
+        }
+        if (nav === "mypage") renderProfile();
+        if (nav === "home") renderHome();
+      }
+
+      function showGolfSub(sub) {
+        state.golfSubView = sub;
+        showView("view-golf-menu", sub === "menu");
+        showView("view-golf-score", sub === "score");
+      }
+
+      function showView(id, visible) {
+        var el = byId(id);
+        if (!el) return;
+        el.style.display = visible ? "" : "none";
+      }
+
+      function openModal(name) {
+        var el = byId(name + "-modal");
+        if (el) el.style.display = "";
+      }
+      function closeModal(name) {
+        var el = byId(name + "-modal");
+        if (el) el.style.display = "none";
+      }
+
+      function bindSegment(containerId, onChange) {
+        var wrap = byId(containerId);
+        if (!wrap) return;
+        var btns = wrap.querySelectorAll("[data-val]");
+        for (var i = 0; i < btns.length; i++) {
+          (function (btn) {
+            on(btn, function () {
+              for (var j = 0; j < btns.length; j++) btns[j].classList.remove("gl-golfmenu__seg__btn--active");
+              btn.classList.add("gl-golfmenu__seg__btn--active");
+              if (typeof onChange === "function") onChange(btn.getAttribute("data-val"));
+            });
+          })(btns[i]);
+        }
+      }
+
+      function renderProfile() {
+        var p = state.profile;
+        var setT = function (id, v) { var el = byId(id); if (el) el.textContent = v || "─"; };
+        setT("mp-nickname", p.nickname);
+        setT("mp-lastname", p.lastName);
+        setT("mp-lastnamekana", p.lastNameKana);
+        setT("mp-firstname", p.firstName);
+        setT("mp-firstnamekana", p.firstNameKana);
+      }
+
+      function renderHome() {
+        var el = byId("home-nickname");
+        if (el) el.textContent = state.profile.nickname || "ゲスト";
+      }
+
+      // ====== プロフィールの永続化 & 初回登録 ======
+      var PROFILE_KEY = "gl_profile_v1";
+      function loadProfile() {
+        try {
+          if (typeof localStorage === "undefined") return;
+          var raw = localStorage.getItem(PROFILE_KEY);
+          if (!raw) return;
+          var obj = JSON.parse(raw);
+          if (obj && typeof obj === "object") {
+            state.profile.nickname = obj.nickname || "";
+            state.profile.lastName = obj.lastName || "";
+            state.profile.lastNameKana = obj.lastNameKana || "";
+            state.profile.firstName = obj.firstName || "";
+            state.profile.firstNameKana = obj.firstNameKana || "";
+          }
+        } catch (e) { /* ignore */ }
+      }
+      function saveProfile() {
+        try {
+          if (typeof localStorage === "undefined") return;
+          localStorage.setItem(PROFILE_KEY, JSON.stringify(state.profile));
+        } catch (e) { /* ignore */ }
+      }
+      function isProfileComplete() {
+        var p = state.profile;
+        return !!(p.nickname && p.lastName && p.lastNameKana);
+      }
+      function openOnboarding() {
+        var el = byId("onboarding-modal");
+        if (el) el.style.display = "";
+        // 既入力値を復元
+        var setV = function (id, v) { var e = byId(id); if (e) e.value = v || ""; };
+        setV("ob-nickname", state.profile.nickname);
+        setV("ob-lastname", state.profile.lastName);
+        setV("ob-lastnamekana", state.profile.lastNameKana);
+        // ボタン状態更新
+        var btn = byId("ob-submit");
+        if (btn) btn.disabled = !isProfileComplete();
+      }
+      function closeOnboarding() {
+        var el = byId("onboarding-modal");
+        if (el) el.style.display = "none";
+      }
+      function checkOnboarding() {
+        if (!isProfileComplete()) openOnboarding();
+      }
+
+      window.GL = { state: state, render: renderAll };
+
+      function boot() {
+        loadProfile();
+        bind();
+        renderAll();
+        renderProfile();
+        // 初回登録済ならホーム、未登録ならゴルフを背景にオンボーディング強制表示
+        if (isProfileComplete()) {
+          switchNav("home");
+        } else {
+          switchNav("golf");
+          openOnboarding();
+        }
+      }
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", boot);
+      } else {
+        boot();
+      }
+    })();
+  </script>
+</body>
+</html>
