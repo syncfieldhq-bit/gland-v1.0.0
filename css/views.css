@@ -519,3 +519,91 @@
 .gl-toolbar__btn--line .gl-toolbar__btn__icon {
   color: #fff !important;
 }
+
+/* ---------- 共有ボタン: 2列レイアウト (ホーム画面用) ---------- */
+.gl-hub__share__grid--2 {
+  grid-template-columns: 1fr 1fr !important;
+}
+
+/* ---------- 招待QRボタン (ツールバー) 用 ---------- */
+.gl-toolbar__btn--invite {
+  background: #FFF3D6 !important;
+  color: var(--gl-red-dark, #B34747) !important;
+  border: 2px solid var(--gl-orange, #F5A623) !important;
+}
+
+/* =========================================================
+   横向き (landscape) 時のスコアテーブル最適化
+   ・ツールバーと下部ナビを最小化
+   ・タブとテーブルだけ大きく見せる
+   ========================================================= */
+@media (orientation: landscape) and (max-height: 500px) {
+  /* ツールバーをコンパクトに */
+  .gl-toolbar {
+    padding: 4px 8px;
+    gap: 4px;
+  }
+  .gl-toolbar__btn {
+    min-width: 60px;
+    min-height: 42px;
+    padding: 2px 4px;
+    font-size: 9px;
+    gap: 0;
+  }
+  .gl-toolbar__btn__icon { font-size: 14px; }
+  .gl-toolbar__btn__label { font-size: 9px; }
+  .gl-toolbar__btn__value { font-size: 12px; }
+
+  /* タブは横に細く */
+  .gl-tabs {
+    padding: 2px 8px;
+  }
+  .gl-tabs__tab {
+    padding: 6px 10px;
+    font-size: 13px;
+    min-height: 34px;
+  }
+
+  /* ゴルフスコア画面の戻るバーも詰める */
+  .gl-golfscore__topbar {
+    padding: 2px 8px 0;
+  }
+  .gl-golfscore__back {
+    font-size: 12px;
+    padding: 2px 0;
+  }
+
+  /* 下部ナビをコンパクトに */
+  .gl-bottomnav {
+    padding: 2px 0;
+  }
+  .gl-bottomnav__item {
+    padding: 4px 2px;
+    font-size: 10px;
+  }
+  .gl-bottomnav__item__icon { font-size: 16px; }
+
+  /* コンテンツエリアを最大化 */
+  .gl-content {
+    padding: 4px;
+  }
+
+  /* スコアテーブル自体を大きく: 縦圧縮せず横スクロールで全ホール見せる */
+  .gl-scoretable--compact,
+  .gl-scoretable--wide {
+    --gl-hole-w: 68px !important;  /* 横に長く使う */
+  }
+  .gl-scoretable__table th,
+  .gl-scoretable__table td {
+    padding: 4px 2px;
+    font-size: 14px;
+  }
+  .gl-scoretable__table thead th {
+    font-size: 12px;
+    padding: 4px 2px;
+  }
+  /* インプットパネルは横幅コンパクトに */
+  .gl-inputpanel {
+    padding: 6px 8px;
+  }
+}

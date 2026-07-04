@@ -61,19 +61,14 @@
           </button>
         </div>
 
-        <!-- 共有アクション -->
+        <!-- 共有 (ホームはアプリ配布とLINEの2つだけ、ラウンド招待はスコアカードへ) -->
         <div class="gl-hub__share">
-          <div class="gl-hub__share__title">共有・招待</div>
-          <div class="gl-hub__share__grid">
+          <div class="gl-hub__share__title">共有</div>
+          <div class="gl-hub__share__grid gl-hub__share__grid--2">
             <button class="gl-hub__share__btn" id="hub-app-qr">
               <div class="gl-hub__share__btn__icon">📱</div>
               <div class="gl-hub__share__btn__label">アプリを配る</div>
               <div class="gl-hub__share__btn__sub">QRコードで共有</div>
-            </button>
-            <button class="gl-hub__share__btn" id="hub-invite-qr">
-              <div class="gl-hub__share__btn__icon">👥</div>
-              <div class="gl-hub__share__btn__label">ラウンドに招待</div>
-              <div class="gl-hub__share__btn__sub">同じ組の人へ</div>
             </button>
             <button class="gl-hub__share__btn gl-hub__share__btn--line" id="hub-line">
               <div class="gl-hub__share__btn__icon">💬</div>
@@ -165,9 +160,9 @@
           <button class="gl-golfmenu__sub" id="gm-history">🕒 スコア履歴</button>
         </div>
 
-        <!-- 招待 / 共有 -->
+        <!-- 共有 (ラウンド開始前はアプリ配布とLINEのみ) -->
         <div class="gl-golfmenu__row" style="margin-top: 10px">
-          <button class="gl-golfmenu__sub" id="gm-invite">👥 招待QR</button>
+          <button class="gl-golfmenu__sub" id="gm-app-qr">📱 アプリを配る</button>
           <button class="gl-golfmenu__sub gl-golfmenu__sub--line" id="gm-line">💬 LINEで送る</button>
         </div>
       </div>
@@ -254,6 +249,10 @@
         <span class="gl-toolbar__btn__icon">💬</span>
         <span class="gl-toolbar__btn__label">LINEで送る</span>
       </button>
+      <button class="gl-toolbar__btn gl-toolbar__btn--invite" id="btn-invite">
+        <span class="gl-toolbar__btn__icon">👥</span>
+        <span class="gl-toolbar__btn__label">招待QR</span>
+      </button>
       <button class="gl-toolbar__btn gl-toolbar__btn--info" id="btn-display">
         <span class="gl-toolbar__btn__icon">🔢</span>
         <span class="gl-toolbar__btn__label">スコア表示</span>
@@ -261,7 +260,7 @@
       </button>
       <button class="gl-toolbar__btn gl-toolbar__btn--accent" id="btn-start">
         <span class="gl-toolbar__btn__label">後半スタート</span>
-        <span class="gl-toolbar__btn__value" id="start-time-label">──:──</span>
+        <span class="gl-toolbar__btn__value" id="start-time-label">--:--</span>
         <span class="gl-toolbar__btn__label" style="font-size:8px">タップで設定</span>
       </button>
       <button class="gl-toolbar__btn gl-toolbar__btn--accent" id="btn-locker">
@@ -621,9 +620,9 @@
         on(byId("btn-line"), openLineShare);
         on(byId("hub-line"), openLineShare);
         on(byId("gm-line"), openLineShare);
-        on(byId("hub-invite-qr"), openInviteQR);
-        on(byId("gm-invite"), openInviteQR);
+        on(byId("btn-invite"), openInviteQR);
         on(byId("hub-app-qr"), openAppQR);
+        on(byId("gm-app-qr"), openAppQR);
 
         // インストール案内
         on(byId("install-banner"), function () {
@@ -653,7 +652,13 @@
         })();
         on(byId("btn-start"), function () {
           // 一度も設定してなければ null → 現在時刻+45分で初期化
-          TimePicker.open(state.startTimeSetByUser ? state.startTime : null, function (val) {
+          // タップ時のモーダル初期値:
+          //   未確定なら「現在時刻 + 45分」
+          //   確定済なら「前回確定した値」
+          var initTime = state.startTimeSetByUser
+            ? state.startTime
+            : timePlusMin(timeNow(), 45);
+          TimePicker.open(initTime, function (val) {
             state.startTime = val;
             state.startTimeSetByUser = true;
             var el = byId("start-time-label");
@@ -847,14 +852,26 @@
         setT("mp-firstname", p.firstName);
         setT("mp-firstnamekana", p.firstNameKana);
         // プレイヤー1人目（自分）の名前をニックネームで上書き
+        // スコアカードのプレイヤー名は苗字（漢字）を優先
         if (state.players && state.players[0]) {
-          state.players[0].name = p.nickname || "あなた";
+          state.players[0].name = p.lastName || p.nickname || "あなた";
         }
       }
 
       function renderHome() {
         var el = byId("home-nickname");
-        if (el) el.textContent = state.profile.nickname || "ゲスト";
+        if (!el) return;
+        var p = state.profile || {};
+        // 優先: 苗字+名前　→　苗字のみ　→　ニックネーム　→　ゲスト
+        var display = "ゲスト";
+        if (p.lastName && p.firstName) {
+          display = p.lastName + p.firstName;
+        } else if (p.lastName) {
+          display = p.lastName;
+        } else if (p.nickname) {
+          display = p.nickname;
+        }
+        el.textContent = display;
       }
 
       // ====== プロフィールの永続化 & 初回登録 ======
@@ -906,11 +923,30 @@
 
       window.GL = { state: state, render: renderAll };
 
+      // 現在時刻に+X分した"HH:MM"を返す
+      function timePlusMin(baseTime, addMin) {
+        var d;
+        if (baseTime && /^\d{2}:\d{2}$/.test(baseTime)) {
+          var parts = baseTime.split(":");
+          d = new Date();
+          d.setHours(parseInt(parts[0], 10), parseInt(parts[1], 10), 0, 0);
+        } else {
+          d = new Date();
+        }
+        d.setMinutes(d.getMinutes() + addMin);
+        return fmt2(d.getHours()) + ":" + fmt2(d.getMinutes());
+      }
+
       function boot() {
         loadProfile();
         bind();
         renderAll();
         renderProfile();
+        // 後半スタートの初期表示を現在時刻にセット
+        state.startTime = timeNow();
+        state.startTimeSetByUser = false;
+        var stLabel = byId("start-time-label");
+        if (stLabel) stLabel.textContent = state.startTime;
         // 初回登録済ならホーム、未登録ならゴルフを背景にオンボーディング強制表示
         if (isProfileComplete()) {
           switchNav("home");

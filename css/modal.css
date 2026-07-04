@@ -1,7 +1,8 @@
 /* ========================================================
- * G-LAND v1.0.0 - Modal (共通・大画面版 v2)
- * ・幅: 画面90% (max 500px)、右10%は閉じる領域
+ * G-LAND v1.2 - Modal (プロレベル大画面版)
+ * ・幅 90vw / 高さ最大 90vh、縦マージンを完全活用
  * ・老眼にやさしい大きな文字とタップ領域
+ * ・タイム/ロッカー/QR/インストール全て共通ルール
  * ======================================================== */
 
 .gl-modal-backdrop {
@@ -14,22 +15,23 @@
   z-index: 9000;
   display: flex;
   align-items: center;
-  justify-content: flex-start;   /* 左寄せ、右10%は閉じる領域 */
+  justify-content: flex-start;
   padding: 0;
 }
 
 .gl-modal {
   background: var(--white);
   border-radius: 22px;
-  padding: 28px 22px 20px;
+  padding: 22px 20px 18px;
   width: 90vw;
   max-width: 500px;
-  margin-left: 0;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  max-height: 92vh;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
   animation: gl-modal-pop 0.18s ease-out;
-  max-height: 90vh;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
   box-sizing: border-box;
+  overflow-y: auto;
 }
 
 @keyframes gl-modal-pop {
@@ -39,32 +41,44 @@
 
 .gl-modal__title {
   text-align: center;
-  font-size: 22px;
-  font-weight: 800;
+  font-size: 24px;
+  font-weight: 900;
   color: var(--gl-green-dark);
-  margin-bottom: 22px;
+  margin: 4px 0 20px;
   letter-spacing: 0.02em;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--gray-200);
 }
 
 .gl-modal__hint {
   text-align: center;
-  font-size: 14px;
-  color: var(--text-tertiary);
-  margin-top: -8px;
-  margin-bottom: 14px;
+  font-size: 15px;
+  color: var(--text-secondary);
+  margin: 8px 0 12px;
+}
+
+.gl-modal__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 12px 0;
 }
 
 .gl-modal__actions {
   display: flex;
-  gap: 10px;
-  margin-top: 24px;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 4px;
+  flex-shrink: 0;
 }
 
 .gl-modal__btn {
   flex: 1;
-  min-height: 56px;
+  min-height: 60px;
   border-radius: 14px;
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 800;
   transition: transform 0.08s;
   border: none;
@@ -82,23 +96,26 @@
   color: var(--white);
 }
 
-/* ==== Locker Picker (大型) ==== */
+/* =========================================================
+   Locker Picker (大画面版)
+   ========================================================= */
 .gl-locker__display {
   text-align: center;
-  font-size: 64px;
+  font-size: 72px;
   font-weight: 900;
   font-family: 'Courier New', monospace;
   color: var(--gl-red-dark);
   background: var(--gl-orange-bg);
   border: 3px solid var(--gl-orange);
-  border-radius: 16px;
-  padding: 22px 12px;
-  margin: 8px 0 22px;
-  letter-spacing: 8px;
-  min-height: 96px;
+  border-radius: 18px;
+  padding: 24px 12px;
+  margin: 4px 0 24px;
+  letter-spacing: 10px;
+  min-height: 112px;
   display: flex;
   align-items: center;
   justify-content: center;
+  line-height: 1;
 }
 .gl-locker__keypad {
   display: grid;
@@ -106,11 +123,11 @@
   gap: 12px;
 }
 .gl-locker__key {
-  min-height: 68px;
-  border-radius: 14px;
+  min-height: 72px;
+  border-radius: 16px;
   background: var(--gray-100);
   color: var(--text-primary);
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 800;
   transition: transform 0.08s;
   border: none;
@@ -124,86 +141,94 @@
 .gl-locker__key--fn {
   background: var(--gl-red-bg);
   color: var(--gl-red-dark);
-  font-size: 22px;
+  font-size: 24px;
 }
 
-/* ==== QR Modal (大型) ==== */
+/* =========================================================
+   QR Modal (老眼でも見える大画面版)
+   ========================================================= */
 .gl-qr__body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 12px 0;
-  min-height: 260px;
+  padding: 8px 0 16px;
   background: var(--white);
 }
 .gl-qr__img {
-  border-radius: 12px;
-  border: 1px solid var(--gray-200);
-  max-width: 260px;
+  border-radius: 14px;
+  border: 2px solid var(--gray-200);
   width: 100%;
+  max-width: 340px;
   height: auto;
   display: block;
+  padding: 12px;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 .gl-qr__fallback {
   text-align: center;
   color: var(--text-tertiary);
-  font-size: 14px;
-  padding: 60px 12px;
+  font-size: 15px;
+  padding: 80px 12px;
 }
 .gl-qr__urlbox {
   margin-top: 16px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   background: var(--gray-100);
-  border-radius: 12px;
-  padding: 14px;
+  border-radius: 14px;
+  padding: 16px;
 }
 .gl-qr__url {
-  font-size: 13px;
-  color: var(--text-secondary);
+  font-size: 14px;
+  color: var(--text-primary);
   word-break: break-all;
-  line-height: 1.5;
+  line-height: 1.6;
   font-family: 'Courier New', monospace;
   padding: 4px 0;
+  font-weight: 600;
 }
 .gl-qr__copy {
-  padding: 12px 16px;
-  border-radius: 10px;
+  padding: 14px 20px;
+  border-radius: 12px;
   background: var(--gl-green);
   color: var(--white);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 800;
   transition: transform 0.08s;
   border: none;
   cursor: pointer;
   font-family: inherit;
-  min-height: 44px;
+  min-height: 52px;
 }
 .gl-qr__copy:active { transform: scale(0.95); }
 
-/* ==== Time Picker (Scroll Wheel, 大型) ==== */
-/* ホイール全体: 264px高 (66 * 4)、5行表示、中央にアクティブ */
+/* =========================================================
+   Time Picker (縦マージン完全活用版)
+   ・ホイール高さ 396px (66×6行相当)
+   ・アクティブ行が中央にどっしり
+   ========================================================= */
 .gl-wheel-picker {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  height: 264px;
+  gap: 16px;
+  height: 396px;
   padding: 0 12px;
   background: var(--gray-50);
-  border-radius: 16px;
+  border-radius: 20px;
   overflow: hidden;
 }
 .gl-wheel {
-  flex: 0 0 120px;
+  flex: 0 0 140px;
   height: 100%;
   overflow-y: scroll;
   scroll-snap-type: y mandatory;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
-  padding: 99px 0;   /* (264 - 66) / 2 = 99 -- centers item 3 of 5 */
+  padding: 165px 0;   /* (396 - 66) / 2 = 165 */
   box-sizing: border-box;
   position: relative;
   z-index: 1;
@@ -215,24 +240,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 36px;
+  font-size: 40px;
   font-weight: 700;
   color: var(--text-tertiary);
   scroll-snap-align: center;
-  transition: color 0.1s, transform 0.1s;
+  transition: color 0.1s, font-size 0.1s;
   font-family: 'Courier New', monospace;
 }
 .gl-wheel__item--active {
   color: var(--gl-red-dark);
-  font-size: 46px;
+  font-size: 54px;
   font-weight: 900;
   background: var(--gl-orange-bg);
   border: 3px solid var(--gl-orange);
-  border-radius: 12px;
+  border-radius: 14px;
   transform: none;
 }
 .gl-wheel__colon {
-  font-size: 46px;
+  font-size: 54px;
   font-weight: 900;
   color: var(--gl-red-dark);
   font-family: 'Courier New', monospace;

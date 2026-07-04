@@ -56,11 +56,12 @@
   left: 0;
   z-index: 2;
   background: var(--gl-green-bg);
-  text-align: left;
-  padding-left: 6px;
+  text-align: center;
+  padding: 4px 6px;
   font-weight: 700;
   border-right: 2px solid var(--gl-green);
   box-shadow: 2px 0 4px -1px rgba(59,183,116,0.20);
+  line-height: 1.15;
 }
 .gl-scoretable__table thead th.gl-col-name {
   z-index: 3;
@@ -194,15 +195,16 @@
 
 /* ---- \u81ea\u5206\u30d0\u30c3\u30b8 ---- */
 .gl-tag-self {
-  display: inline-block;
-  margin-left: 2px;
-  padding: 1px 5px;
+  display: block;
+  margin: 3px auto 0;
+  padding: 2px 8px;
   border-radius: var(--radius-pill);
   background: var(--gl-orange-tag);
   color: var(--white);
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
-  vertical-align: middle;
+  width: fit-content;
+  line-height: 1.2;
 }
 
 /* ---- \u7d44\u8868\u793a\u30d8\u30c3\u30c0\u30fc ---- */
