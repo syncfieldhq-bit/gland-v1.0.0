@@ -15,7 +15,7 @@
   z-index: 9000;
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;   /* 中央寄せに戻す */
   padding: 0;
 }
 
@@ -226,22 +226,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 20px;
-  height: 396px;
-  padding: 0 16px;
+  gap: 8px;
+  height: 340px;
+  width: 100%;
+  padding: 0;
   background: linear-gradient(180deg, #FAFBFC 0%, #FFFFFF 30%, #FFFFFF 70%, #FAFBFC 100%);
   border-radius: 20px;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
-/* 中央のハイライトバンド（固定、ホイールの背景に平らに強く見せる）*/
+/* 中央のハイライトバンド */
 .gl-wheel-picker::before {
   content: "";
   position: absolute;
-  left: 12px;
-  right: 12px;
+  left: 8px;
+  right: 8px;
   top: 50%;
-  height: 66px;
+  height: 60px;
   transform: translateY(-50%);
   background: var(--gl-orange-bg);
   border-top: 2px solid var(--gl-orange);
@@ -251,7 +253,7 @@
   z-index: 0;
 }
 
-/* 上下のフェードリング（周囲の数字がふわっと見えるリアル風）*/
+/* 上下フェード */
 .gl-wheel-picker::after {
   content: "";
   position: absolute;
@@ -259,23 +261,24 @@
   pointer-events: none;
   background:
     linear-gradient(180deg,
-      rgba(255,255,255,0.95) 0%,
-      rgba(255,255,255,0.6)  18%,
-      rgba(255,255,255,0)    32%,
-      rgba(255,255,255,0)    68%,
-      rgba(255,255,255,0.6)  82%,
-      rgba(255,255,255,0.95) 100%);
+      rgba(255,255,255,0.92) 0%,
+      rgba(255,255,255,0.5)  22%,
+      rgba(255,255,255,0)    38%,
+      rgba(255,255,255,0)    62%,
+      rgba(255,255,255,0.5)  78%,
+      rgba(255,255,255,0.92) 100%);
   z-index: 3;
 }
 
 .gl-wheel {
-  flex: 0 0 130px;
+  flex: 1 1 0;             /* 平等に伸びる */
+  min-width: 0;
   height: 100%;
   overflow-y: scroll;
   scroll-snap-type: y mandatory;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
-  padding: 165px 0;   /* (396 - 66) / 2 = 165 */
+  padding: 140px 0;        /* (340 - 60) / 2 = 140 */
   box-sizing: border-box;
   position: relative;
   z-index: 2;
@@ -283,11 +286,11 @@
 .gl-wheel::-webkit-scrollbar { display: none; }
 
 .gl-wheel__item {
-  height: 66px;
+  height: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 34px;
+  font-size: 30px;
   font-weight: 600;
   color: #B0B7BF;
   scroll-snap-align: center;
@@ -297,19 +300,20 @@
 }
 .gl-wheel__item--active {
   color: var(--gl-red-dark);
-  font-size: 44px;
+  font-size: 42px;
   font-weight: 800;
-  background: transparent;    /* ハイライトは::beforeに任せる */
+  background: transparent;
   border: none;
   transform: none;
 }
 .gl-wheel__colon {
-  font-size: 46px;
+  flex: 0 0 auto;
+  font-size: 40px;
   font-weight: 800;
   color: var(--gl-red-dark);
   font-family: 'SF Mono', 'Menlo', 'Courier New', monospace;
   align-self: center;
   z-index: 4;
-  padding-bottom: 4px;
+  padding: 0 4px 4px;
 }
 

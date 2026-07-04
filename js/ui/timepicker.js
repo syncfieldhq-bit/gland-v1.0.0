@@ -67,14 +67,13 @@ const TimePicker = {
   },
 
   /**
-   * ホイール構築ロジック 決定版 (大型版):
-   * - ホイール全体高さ = 264px (5行表示)
-   * - 各アイテム高さ = 66px、中央行 (3行目) がアクティブ
-   * - CSS で上下 99px の padding = (264-66)/2、最初のアイテムが中央バンドに来る
-   * - スクロール位置 = 選択値 index × 66px → 中央帯にその値が来る
+   * ホイール構築ロジック v1.3.1:
+   * - ホイール全体高さ = 340px
+   * - 各アイテム高さ = 60px、中央行がアクティブ
+   * - CSS で上下 140px の padding = (340-60)/2
    */
   _buildWheel(el, min, max, initial, onChange) {
-    const itemHeight = 66;
+    const itemHeight = 60;
 
     let html = "";
     for (let v = min; v <= max; v++) {
