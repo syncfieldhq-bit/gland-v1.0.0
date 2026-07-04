@@ -743,32 +743,39 @@
         var stub = function (label) {
           return function () { alert(label + " は後のセクションで実装します"); };
         };
-        // 招待 URL の基盤ドメインを決定:
-        //   file:// (ローカルファイル) ならダミーを使う
-        //   http(s):// なら location.origin + location.pathname のディレクトリ部分を使う
-        //   → 将来的に GitHub Pages なら https://[user].github.io/g-land/ になる
+        // 招待 URL の基盤ドメインを決定：
+        //  - file:// (ローカルファイル) ならダミーを使う
+        //  - http(s):// なら location.origin + location.pathname のディレクトリ部分を使う
+        //  - Phase 3: state.roundId が未設定なら null を返してモーダル側でエラー表示
         var getInviteUrl = function () {
-          var rid = state.roundId || "R-DEMO-001";
+          var rid = state.roundId || "";
+          if (!rid) return "";  // ラウンド未作成なら空文字
           var base;
           if (location.protocol === "file:" || !location.origin || location.origin === "null") {
-            base = "https://g-land.example/";  // デプロイ後に実ドメインに差し替え
+            base = "https://g-land.example/";
           } else {
-            // パスのファイル名は削ってディレクトリのみに
             var dir = location.pathname.replace(/[^\/]+$/, "");
             base = location.origin + dir;
           }
-          return base + "join?r=" + encodeURIComponent(rid);
+          return base + "?join=" + encodeURIComponent(rid);
         };
+
         // 共通: LINEで送る
         var openLineShare = function () {
           var text = "G-LAND ラウンドに合流しましょう！\n" + getInviteUrl();
           var lineUrl = "https://line.me/R/msg/text/?" + encodeURIComponent(text);
           window.open(lineUrl, "_blank");
         };
-        // 共通: 招待QR
+        // 共通：招待QR（Phase 3: roundId が無ければラウンド未作成として警告）
         var openInviteQR = function () {
-          QRModal.open(getInviteUrl(), "ラウンドに招待");
+          var url = getInviteUrl();
+          if (!url) {
+            alert("先に「ラウンド開始」を押してラウンドを作成してください");
+            return;
+          }
+          QRModal.open(url, "ラウンドに招待");
         };
+
         // 共通: アプリ配布QR (ルートURLを共有)
         var getAppUrl = function () {
           if (location.protocol === "file:" || !location.origin || location.origin === "null") {
@@ -870,8 +877,29 @@
         bindSegment("gm-rounds", function (v) { state.rounds = v; });
 
         // ラウンド開始・スコアカード
-        on(byId("gm-start"), function () { showGolfSub("score"); });
+        on(byId("gm-start"), function () {
+          // Phase 3: サーバに新ラウンドを作成
+          if (typeof window.glandApi === "function" && typeof window.glandApiIsConfigured === "function" && window.glandApiIsConfigured()) {
+            var userId = (typeof window.glandGetUserId === "function") ? window.glandGetUserId() : "";
+            window.glandApi("apiStartRound", {
+              userId: userId,
+              hostName: (state.profile && state.profile.nickname) || ""
+            }).then(function (r) {
+              if (r && r.ok && r.data && r.data.roundId) {
+                state.roundId = r.data.roundId;
+                try { localStorage.setItem("gl_round_id_v1", r.data.roundId); } catch (e) {}
+                console.log("[GL] round created:", r.data.roundId);
+              } else {
+                console.warn("[GL] apiStartRound failed:", r && r.error);
+              }
+            }).catch(function (e) {
+              console.warn("[GL] apiStartRound exception:", e);
+            });
+          }
+          showGolfSub("score");
+        });
         on(byId("gm-scorecard"), function () { showGolfSub("score"); });
+
 
         // 履歴
         on(byId("gm-history"), function () { openModal("history"); });
