@@ -22,8 +22,8 @@
 .gl-modal {
   background: var(--white);
   border-radius: 22px;
-  padding: 22px 20px 18px;
-  width: 90vw;
+  padding: 20px 14px 16px;
+  width: 92vw;
   max-width: 500px;
   max-height: 92vh;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
@@ -101,47 +101,59 @@
    ========================================================= */
 .gl-locker__display {
   text-align: center;
-  font-size: 72px;
+  font-size: 64px;
   font-weight: 900;
-  font-family: 'Courier New', monospace;
+  font-family: 'SF Mono', 'Menlo', 'Courier New', monospace;
   color: var(--gl-red-dark);
   background: var(--gl-orange-bg);
   border: 3px solid var(--gl-orange);
-  border-radius: 18px;
-  padding: 24px 12px;
-  margin: 4px 0 24px;
-  letter-spacing: 10px;
-  min-height: 112px;
+  border-radius: 16px;
+  padding: 16px 12px;
+  margin: 4px 0 18px;
+  letter-spacing: 8px;
+  min-height: 92px;
   display: flex;
   align-items: center;
   justify-content: center;
   line-height: 1;
 }
+
+/* 電卓風レイアウト: 横幅フル活用、正方形に近い大きなボタン */
 .gl-locker__keypad {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: 10px;
+  padding: 0;
 }
 .gl-locker__key {
-  min-height: 72px;
-  border-radius: 16px;
-  background: var(--gray-100);
-  color: var(--text-primary);
-  font-size: 32px;
-  font-weight: 800;
-  transition: transform 0.08s;
-  border: none;
+  aspect-ratio: 1.4 / 1;   /* 電卓ボタンライク平たい矩形 */
+  min-height: 68px;
+  border-radius: 14px;
+  background: #F5F7F9;
+  color: #1A1F27;
+  font-size: 34px;
+  font-weight: 700;
+  transition: transform 0.08s, background 0.1s;
+  border: 1px solid #E1E5EA;
   cursor: pointer;
   font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
 }
 .gl-locker__key:active {
-  transform: scale(0.95);
-  background: var(--gl-green-bg);
+  transform: scale(0.94);
+  background: #E8EEF3;
 }
 .gl-locker__key--fn {
-  background: var(--gl-red-bg);
+  background: #FFF0F0;
   color: var(--gl-red-dark);
-  font-size: 24px;
+  border-color: #F5CDCD;
+  font-size: 28px;
+}
+.gl-locker__key--fn:active {
+  background: #FDE0E0;
 }
 
 /* =========================================================
@@ -214,15 +226,50 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: 20px;
   height: 396px;
-  padding: 0 12px;
-  background: var(--gray-50);
+  padding: 0 16px;
+  background: linear-gradient(180deg, #FAFBFC 0%, #FFFFFF 30%, #FFFFFF 70%, #FAFBFC 100%);
   border-radius: 20px;
   overflow: hidden;
 }
+
+/* 中央のハイライトバンド（固定、ホイールの背景に平らに強く見せる）*/
+.gl-wheel-picker::before {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 50%;
+  height: 66px;
+  transform: translateY(-50%);
+  background: var(--gl-orange-bg);
+  border-top: 2px solid var(--gl-orange);
+  border-bottom: 2px solid var(--gl-orange);
+  border-radius: 8px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 上下のフェードリング（周囲の数字がふわっと見えるリアル風）*/
+.gl-wheel-picker::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg,
+      rgba(255,255,255,0.95) 0%,
+      rgba(255,255,255,0.6)  18%,
+      rgba(255,255,255,0)    32%,
+      rgba(255,255,255,0)    68%,
+      rgba(255,255,255,0.6)  82%,
+      rgba(255,255,255,0.95) 100%);
+  z-index: 3;
+}
+
 .gl-wheel {
-  flex: 0 0 140px;
+  flex: 0 0 130px;
   height: 100%;
   overflow-y: scroll;
   scroll-snap-type: y mandatory;
@@ -231,7 +278,7 @@
   padding: 165px 0;   /* (396 - 66) / 2 = 165 */
   box-sizing: border-box;
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 .gl-wheel::-webkit-scrollbar { display: none; }
 
@@ -240,27 +287,29 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 40px;
-  font-weight: 700;
-  color: var(--text-tertiary);
+  font-size: 34px;
+  font-weight: 600;
+  color: #B0B7BF;
   scroll-snap-align: center;
-  transition: color 0.1s, font-size 0.1s;
-  font-family: 'Courier New', monospace;
+  transition: color 0.15s, font-size 0.15s, font-weight 0.15s;
+  font-family: 'SF Mono', 'Menlo', 'Courier New', monospace;
+  letter-spacing: 0.02em;
 }
 .gl-wheel__item--active {
   color: var(--gl-red-dark);
-  font-size: 54px;
-  font-weight: 900;
-  background: var(--gl-orange-bg);
-  border: 3px solid var(--gl-orange);
-  border-radius: 14px;
+  font-size: 44px;
+  font-weight: 800;
+  background: transparent;    /* ハイライトは::beforeに任せる */
+  border: none;
   transform: none;
 }
 .gl-wheel__colon {
-  font-size: 54px;
-  font-weight: 900;
+  font-size: 46px;
+  font-weight: 800;
   color: var(--gl-red-dark);
-  font-family: 'Courier New', monospace;
+  font-family: 'SF Mono', 'Menlo', 'Courier New', monospace;
   align-self: center;
-  z-index: 2;
+  z-index: 4;
+  padding-bottom: 4px;
 }
+

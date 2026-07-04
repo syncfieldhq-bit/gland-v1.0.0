@@ -533,77 +533,74 @@
 }
 
 /* =========================================================
-   横向き (landscape) 時のスコアテーブル最適化
-   ・ツールバーと下部ナビを最小化
-   ・タブとテーブルだけ大きく見せる
+   横向き (landscape) 専用レイアウト — 前バージョン準拠
+   ・上部ツールバー・戻るバー・下部ナビは完全に隠す
+   ・タブ（組表示/スコア入力）だけ残し、スコアテーブルを画面フル活用
    ========================================================= */
 @media (orientation: landscape) and (max-height: 500px) {
-  /* ツールバーをコンパクトに */
-  .gl-toolbar {
+
+  /* ゴルフスコア画面だけ新レイアウト適用。ホームやマイページでは普通の表示 */
+  #view-golf-score .gl-toolbar { display: none !important; }
+  #view-golf-score .gl-golfscore__topbar { display: none !important; }
+  .gl-bottomnav { display: none !important; }
+
+  /* タブをもう少しコンパクトに（スコアテーブルへのスペース確保）*/
+  #view-golf-score .gl-tabs {
     padding: 4px 8px;
-    gap: 4px;
+    gap: 6px;
   }
-  .gl-toolbar__btn {
-    min-width: 60px;
-    min-height: 42px;
-    padding: 2px 4px;
-    font-size: 9px;
-    gap: 0;
-  }
-  .gl-toolbar__btn__icon { font-size: 14px; }
-  .gl-toolbar__btn__label { font-size: 9px; }
-  .gl-toolbar__btn__value { font-size: 12px; }
-
-  /* タブは横に細く */
-  .gl-tabs {
-    padding: 2px 8px;
-  }
-  .gl-tabs__tab {
-    padding: 6px 10px;
+  #view-golf-score .gl-tabs__tab {
+    padding: 6px 12px;
     font-size: 13px;
-    min-height: 34px;
+    min-height: 36px;
   }
-
-  /* ゴルフスコア画面の戻るバーも詰める */
-  .gl-golfscore__topbar {
-    padding: 2px 8px 0;
-  }
-  .gl-golfscore__back {
-    font-size: 12px;
-    padding: 2px 0;
-  }
-
-  /* 下部ナビをコンパクトに */
-  .gl-bottomnav {
-    padding: 2px 0;
-  }
-  .gl-bottomnav__item {
-    padding: 4px 2px;
-    font-size: 10px;
-  }
-  .gl-bottomnav__item__icon { font-size: 16px; }
 
   /* コンテンツエリアを最大化 */
-  .gl-content {
-    padding: 4px;
+  #view-golf-score .gl-content {
+    padding: 2px 4px;
+    height: calc(100vh - 48px);
+    overflow: hidden;
+  }
+  #view-golf-score #view-input,
+  #view-golf-score #view-summary {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
   }
 
-  /* スコアテーブル自体を大きく: 縦圧縮せず横スクロールで全ホール見せる */
-  .gl-scoretable--compact,
-  .gl-scoretable--wide {
-    --gl-hole-w: 68px !important;  /* 横に長く使う */
+  /* サマリーヘッダー（最終保存・更新）は保持だがコンパクト */
+  #view-golf-score .gl-summary-header {
+    padding: 2px 8px;
   }
-  .gl-scoretable__table th,
-  .gl-scoretable__table td {
+  #view-golf-score .gl-summary-header__updated { font-size: 11px; }
+  #view-golf-score .gl-summary-header__refresh {
+    padding: 4px 10px;
+    font-size: 11px;
+  }
+
+  /* スコアテーブルを横幅フル活用、セル幅を広めに */
+  #view-golf-score .gl-scoretable--compact,
+  #view-golf-score .gl-scoretable--wide {
+    --gl-hole-w: 72px !important;
+  }
+  #view-golf-score .gl-scoretable__wrap {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  #view-golf-score .gl-scoretable__table th,
+  #view-golf-score .gl-scoretable__table td {
+    padding: 6px 2px;
+    font-size: 15px;
+  }
+  #view-golf-score .gl-scoretable__table thead th {
+    font-size: 13px;
     padding: 4px 2px;
-    font-size: 14px;
   }
-  .gl-scoretable__table thead th {
-    font-size: 12px;
-    padding: 4px 2px;
-  }
-  /* インプットパネルは横幅コンパクトに */
-  .gl-inputpanel {
-    padding: 6px 8px;
+
+  /* 入力タブ（スコア入力）のInputPanelは横向きでは非表示にして、スコアテーブルだけ見せる
+     （横向きの主目的は全体見渡し、入力は縦向きで）*/
+  #view-golf-score .gl-inputpanel {
+    display: none;
   }
 }
+
