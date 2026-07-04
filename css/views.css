@@ -581,18 +581,9 @@
     display: none;
   }
 
-  /* v1.7: ★ タブの上の余白を検律に削除 */
-  #view-golf-score .gl-content > * { margin-top: 0 !important; }
-  #view-golf-score { padding-top: 0 !important; }
-
   /* =============================================
      【組表示】横向き：4人全員が縦幅に収まる + 数字大型化
      ============================================= */
-  /* v1.7: ★ 組表示（tab-summary）ではハイライトを非表示 */
-  #view-golf-score #view-summary .gl-col-current {
-    outline: none !important;
-    background: transparent !important;
-  }
   #view-golf-score .gl-scoretable--compact,
   #view-golf-score .gl-scoretable--wide {
     --gl-hole-w: 58px !important;
@@ -618,17 +609,11 @@
     line-height: 1.1;
   }
   /* プレイヤー行のセル：数字をドンと大きく、行高を均等に分割 */
-  #view-golf-score #view-summary .gl-scoretable__table td {
-    padding: 3px 2px;
-    font-size: 24px;      /* ★ スコア数字を大きく（老眼対策）*/
+  #view-golf-score .gl-scoretable__table td {
+    padding: 4px 2px;
+    font-size: 26px;      /* ★ スコア数字を大きく（老眼対策）*/
     font-weight: 800;
     line-height: 1;
-    height: auto;
-  }
-  /* v1.7: ★ 組表示のテーブルの高さを上限として確保し、4人届くようにする */
-  #view-golf-score #view-summary .gl-scoretable__wrap {
-    max-height: calc(100vh - 40px);
-    overflow-y: auto;
   }
   /* プレイヤー名列 */
   #view-golf-score .gl-col-name {
@@ -644,15 +629,9 @@
   /* PAR行は控えめ */
   #view-golf-score .gl-scoretable__table tr.gl-row-par td,
   #view-golf-score .gl-scoretable__table tr.gl-row-par th {
-    font-size: 13px;
+    font-size: 14px;
     padding: 2px 2px;
-    height: 20px;
-  }
-  /* v1.7: タグ「自分」もコンパクトに */
-  #view-golf-score .gl-tag-self {
-    font-size: 9px;
-    padding: 1px 6px;
-    margin: 1px auto 0;
+    height: 24px;
   }
 
   /* =============================================
@@ -664,14 +643,10 @@
     padding: 4px 8px 6px;
     flex: 0 0 auto;
   }
-  /* v1.7: 入力タブでテーブルを小さくし、入力パネルに十分なスペースを確保 */
+  /* 入力パネルの上にスコアテーブルも見えるようにしつつ、入力にスペースを割く */
   #view-golf-score #view-input .gl-scoretable__wrap {
-    max-height: 78px;
+    max-height: 100px;
     flex: 0 0 auto;
-  }
-  #view-golf-score #view-input .gl-scoretable__table td {
-    font-size: 14px;
-    padding: 2px 2px;
   }
   /* モードタブ（シンプル/カウンター）はコンパクト */
   #view-golf-score #view-input .gl-inputpanel__modetabs {
@@ -683,35 +658,31 @@
   }
   /* ★ ストロークボタンの数字を倧大に（縦向きよりも大きく） */
   #view-golf-score #view-input .gl-simple {
-    grid-template-columns: 48px 1fr 1fr 1fr 48px;
-    gap: 8px;
-    padding: 0 4px;
+    grid-template-columns: 44px 1fr 1fr 1fr 44px;
+    gap: 6px;
   }
   #view-golf-score #view-input .gl-simple__btn {
-    min-height: 78px !important;
-    max-height: 92px;
+    min-height: 62px;
   }
   #view-golf-score #view-input .gl-simple__btn .num {
-    font-size: 48px !important;   /* ★ 倧大化（縦向きの倍以上）*/
-    font-weight: 900 !important;
-    line-height: 1;
+    font-size: 34px !important;   /* ★ 大きめの数字 */
+    font-weight: 900;
   }
   #view-golf-score #view-input .gl-simple__btn .lbl {
-    font-size: 11px;
-    margin-top: 4px;
+    font-size: 10px;
   }
   #view-golf-score #view-input .gl-simple__btn--minus,
   #view-golf-score #view-input .gl-simple__btn--plus {
-    min-height: 48px !important;
-    max-height: 58px;
+    min-height: 44px;
+    max-height: 62px;
   }
   #view-golf-score #view-input .gl-simple__btn--minus .num,
   #view-golf-score #view-input .gl-simple__btn--plus .num {
-    font-size: 32px !important;
+    font-size: 26px !important;
   }
   /* カウンターモードの大きな数字も倧大化 */
   #view-golf-score #view-input .gl-counter__display .num {
-    font-size: 56px !important;
+    font-size: 44px !important;
   }
   /* パット行はコンパクト */
   #view-golf-score #view-input .gl-putt {
@@ -798,48 +769,48 @@
    ラウンド完了サマリー画面
    ========================================================= */
 .gl-summary-result {
-  padding: 12px 14px 24px;
+  padding: 6px 14px 16px;         /* v1.9: 上下を詰める */
 }
 .gl-summary-result__title {
   text-align: center;
-  font-size: 22px;
+  font-size: 18px;                /* v1.9: 22 → 18 */
   font-weight: 900;
   color: #2C9C5E;
-  padding: 10px 0 6px;
+  padding: 4px 0 2px;
 }
 .gl-summary-result__course {
   text-align: center;
-  font-size: 17px;
+  font-size: 15px;                /* v1.9: 17 → 15 */
   font-weight: 800;
   color: #2b2b2b;
 }
 .gl-summary-result__date {
   text-align: center;
-  font-size: 13px;
+  font-size: 12px;                /* v1.9: 13 → 12 */
   color: #7a7a7a;
-  margin-bottom: 16px;
+  margin-bottom: 6px;             /* v1.9: 16 → 6 */
 }
 .gl-summary-result__score {
   background: linear-gradient(135deg, #3BB774 0%, #2C9C5E 100%);
   color: #fff;
-  border-radius: 18px;
-  padding: 24px 12px;
+  border-radius: 14px;
+  padding: 12px 12px 10px;      /* v1.9: コンパクト化 */
   text-align: center;
-  margin: 4px 0 16px;
-  box-shadow: 0 6px 18px rgba(59,183,116,0.25);
+  margin: 2px 0 10px;
+  box-shadow: 0 4px 12px rgba(59,183,116,0.22);
 }
 .gl-summary-result__score__total {
-  font-size: 96px;
+  font-size: 64px;              /* v1.9: 96 → 64 */
   font-weight: 900;
   font-family: 'SF Mono', 'Menlo', monospace;
   line-height: 1;
 }
 .gl-summary-result__score__diff {
-  font-size: 32px;
+  font-size: 22px;              /* v1.9: 32 → 22 */
   font-weight: 800;
-  margin-top: 10px;
+  margin-top: 4px;
   display: inline-block;
-  padding: 6px 20px;
+  padding: 3px 14px;
   border-radius: 999px;
   background: rgba(255,255,255,0.25);
 }
@@ -850,27 +821,27 @@
 .gl-summary-result__oi {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 6px;
+  margin-bottom: 10px;        /* v1.9: 16 → 10 */
 }
 .gl-summary-result__oi__cell {
   background: #F6F8FA;
   border: 1px solid #E6E8EB;
-  border-radius: 12px;
-  padding: 12px 4px;
+  border-radius: 10px;
+  padding: 6px 4px;           /* v1.9: 12 → 6 */
   text-align: center;
 }
 .gl-summary-result__oi__label {
-  font-size: 16px;
+  font-size: 13px;                    /* v1.9: 16 → 13 */
   color: #7a7a7a;
   font-weight: 700;
 }
 .gl-summary-result__oi__value {
-  font-size: 40px;
+  font-size: 28px;                    /* v1.9: 40 → 28 */
   font-weight: 800;
   color: #2b2b2b;
   font-family: 'SF Mono', 'Menlo', monospace;
-  margin-top: 4px;
+  margin-top: 2px;
   line-height: 1.1;
 }
 
