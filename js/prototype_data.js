@@ -5,9 +5,9 @@
 
 var PROTOTYPE_HOLES = [
   // OUT (1〜9)
-  { holeNumber: 1,  par: 4, yard: 352, hasT: false, strokes: 5, putts: 2 },
-  { holeNumber: 2,  par: 4, yard: 352, hasT: false, strokes: 4, putts: 2 },
-  { holeNumber: 3,  par: 4, yard: 263, hasT: true,  strokes: 5, putts: 2 },
+  { holeNumber: 1,  par: 4, yard: 352, hasT: false, strokes: null, putts: null },
+  { holeNumber: 2,  par: 4, yard: 352, hasT: false, strokes: null, putts: null },
+  { holeNumber: 3,  par: 4, yard: 263, hasT: true,  strokes: null, putts: null },
   { holeNumber: 4,  par: 5, yard: 469, hasT: false, strokes: null, putts: null },
   { holeNumber: 5,  par: 4, yard: 358, hasT: true,  strokes: null, putts: null },
   { holeNumber: 6,  par: 3, yard: 154, hasT: false, strokes: null, putts: null },

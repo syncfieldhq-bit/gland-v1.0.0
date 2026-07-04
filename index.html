@@ -7,8 +7,6 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#3BB774">
   <title>G-LAND v1.0.0</title>
-  <link rel="icon" href="assets/icon.png">
-  <link rel="apple-touch-icon" href="assets/icon.png">
   <link rel="stylesheet" href="css/theme.css">
   <link rel="stylesheet" href="css/reset.css">
   <link rel="stylesheet" href="css/layout.css">
@@ -62,6 +60,66 @@
             <div class="gl-hub__card__desc">プロフィール設定</div>
           </button>
         </div>
+
+        <!-- 共有アクション -->
+        <div class="gl-hub__share">
+          <div class="gl-hub__share__title">共有・招待</div>
+          <div class="gl-hub__share__grid">
+            <button class="gl-hub__share__btn" id="hub-app-qr">
+              <div class="gl-hub__share__btn__icon">📱</div>
+              <div class="gl-hub__share__btn__label">アプリを配る</div>
+              <div class="gl-hub__share__btn__sub">QRコードで共有</div>
+            </button>
+            <button class="gl-hub__share__btn" id="hub-invite-qr">
+              <div class="gl-hub__share__btn__icon">👥</div>
+              <div class="gl-hub__share__btn__label">ラウンドに招待</div>
+              <div class="gl-hub__share__btn__sub">同じ組の人へ</div>
+            </button>
+            <button class="gl-hub__share__btn gl-hub__share__btn--line" id="hub-line">
+              <div class="gl-hub__share__btn__icon">💬</div>
+              <div class="gl-hub__share__btn__label">LINEで送る</div>
+              <div class="gl-hub__share__btn__sub">即时共有</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- ホーム画面に追加 (PWA風) の案内バナー -->
+        <div class="gl-hub__install" id="install-banner">
+          <div class="gl-hub__install__icon">⬇️</div>
+          <div class="gl-hub__install__body">
+            <div class="gl-hub__install__title">スマホにインストール</div>
+            <div class="gl-hub__install__sub" id="install-hint">詳しい手順を見る</div>
+          </div>
+          <div class="gl-hub__install__chev">▸</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- インストール手順モーダル -->
+    <div id="install-modal" class="gl-modal" style="display:none">
+      <div class="gl-modal__backdrop" data-close="install"></div>
+      <div class="gl-modal__panel gl-modal__panel--wide">
+        <div class="gl-modal__title">スマホのホーム画面に追加</div>
+        <div id="install-guide-ios" class="gl-install">
+          <div class="gl-install__badge">iPhone / iPad (Safari)</div>
+          <ol class="gl-install__steps">
+            <li>画面下部中央の <b>共有ボタン 🔼</b> をタップ</li>
+            <li>メニューを下にスクロール</li>
+            <li><b>「ホーム画面に追加」</b> をタップ</li>
+            <li>右上の <b>「追加」</b> をタップして完了</li>
+          </ol>
+        </div>
+        <div id="install-guide-android" class="gl-install">
+          <div class="gl-install__badge">Android (Chrome)</div>
+          <ol class="gl-install__steps">
+            <li>右上の <b>⠇ メニュー</b> をタップ</li>
+            <li><b>「アプリをインストール」</b> または<br><b>「ホーム画面に追加」</b> をタップ</li>
+            <li><b>「インストール」</b> または <b>「追加」</b> をタップして完了</li>
+          </ol>
+        </div>
+        <div class="gl-modal__actions">
+          <button class="gl-modal__btn gl-modal__btn--primary" data-close="install">閉じる</button>
+        </div>
       </div>
     </div>
 
@@ -105,6 +163,12 @@
         <div class="gl-golfmenu__row">
           <button class="gl-golfmenu__sub" id="gm-scorecard">📋 スコアカード</button>
           <button class="gl-golfmenu__sub" id="gm-history">🕒 スコア履歴</button>
+        </div>
+
+        <!-- 招待 / 共有 -->
+        <div class="gl-golfmenu__row" style="margin-top: 10px">
+          <button class="gl-golfmenu__sub" id="gm-invite">👥 招待QR</button>
+          <button class="gl-golfmenu__sub gl-golfmenu__sub--line" id="gm-line">💬 LINEで送る</button>
         </div>
       </div>
 
@@ -186,13 +250,9 @@
     </div>
     <!-- ==== 上部ツールバー ==== -->
     <div class="gl-toolbar">
-      <button class="gl-toolbar__btn" id="btn-qr">
-        <span class="gl-toolbar__btn__icon">📷</span>
-        <span class="gl-toolbar__btn__label">招待QR</span>
-      </button>
-      <button class="gl-toolbar__btn" id="btn-line">
-        <span class="gl-toolbar__btn__icon">🔗</span>
-        <span class="gl-toolbar__btn__label">LINE共有</span>
+      <button class="gl-toolbar__btn gl-toolbar__btn--line" id="btn-line">
+        <span class="gl-toolbar__btn__icon">💬</span>
+        <span class="gl-toolbar__btn__label">LINEで送る</span>
       </button>
       <button class="gl-toolbar__btn gl-toolbar__btn--info" id="btn-display">
         <span class="gl-toolbar__btn__icon">🔢</span>
@@ -201,13 +261,13 @@
       </button>
       <button class="gl-toolbar__btn gl-toolbar__btn--accent" id="btn-start">
         <span class="gl-toolbar__btn__label">後半スタート</span>
-        <span class="gl-toolbar__btn__value" id="start-time-label">15:23</span>
+        <span class="gl-toolbar__btn__value" id="start-time-label">──:──</span>
         <span class="gl-toolbar__btn__label" style="font-size:8px">タップで設定</span>
       </button>
       <button class="gl-toolbar__btn gl-toolbar__btn--accent" id="btn-locker">
         <span class="gl-toolbar__btn__icon">🔒</span>
         <span class="gl-toolbar__btn__label">ロッカー</span>
-        <span class="gl-toolbar__btn__value" id="locker-label">72</span>
+        <span class="gl-toolbar__btn__value" id="locker-label">───</span>
       </button>
     </div>
 
@@ -305,14 +365,10 @@
           return { holeNumber:h.holeNumber, par:h.par, strokes:null, putts:null };
         });
       }
+      // 白紙スタート: 自分 (プロフィールのニックネームを後で反映) ので1名だけ
       var players = [
-        { name: "佐藤", isSelf: true,  holes: HOLES.slice() },
-        { name: "田中", isSelf: false, holes: cloneHoles(HOLES) },
-        { name: "鈴木", isSelf: false, holes: cloneHoles(HOLES) },
-        { name: "山本", isSelf: false, holes: cloneHoles(HOLES) }
+        { name: "あなた", isSelf: true, holes: HOLES.slice() }
       ];
-      players[1].holes[0].strokes = 4;
-      players[2].holes[0].strokes = 6;
 
       var state = {
         currentTab: "input",
@@ -323,9 +379,9 @@
         structure: "18h",
         players: players,
         selfIdx: 0,
-        startTime: "15:23",       // 後半スタート時刻 (初期はダミー、ユーザーが開いた時に現在時刻+45分で初期化)
-        startTimeSetByUser: false,  // ユーザーが一度でも確定したか
-        lockerNumber: 72,          // ロッカー番号
+        startTime: null,           // 後半スタート時刻 (白紙、タップして初めて入力)
+        startTimeSetByUser: false,
+        lockerNumber: null,        // ロッカー番号 (白紙)
         lastUpdate: null,
 
         // ナビゲーション
@@ -540,30 +596,75 @@
           }
           return base + "join?r=" + encodeURIComponent(rid);
         };
-        on(byId("btn-qr"), function () {
-          QRModal.open(getInviteUrl(), "招待QR");
-        });
-        on(byId("btn-line"), function () {
-          // LINE 専用: navigator.share は使わず、必ず LINE を起動
+        // 共通: LINEで送る
+        var openLineShare = function () {
           var text = "G-LAND ラウンドに合流しましょう！\n" + getInviteUrl();
           var lineUrl = "https://line.me/R/msg/text/?" + encodeURIComponent(text);
-          // 新しいタブで開く (LINE アプリ/Web へ)
           window.open(lineUrl, "_blank");
+        };
+        // 共通: 招待QR
+        var openInviteQR = function () {
+          QRModal.open(getInviteUrl(), "ラウンドに招待");
+        };
+        // 共通: アプリ配布QR (ルートURLを共有)
+        var getAppUrl = function () {
+          if (location.protocol === "file:" || !location.origin || location.origin === "null") {
+            return "https://g-land.example/";
+          }
+          var p = location.pathname.replace(/index\.html?$/, "");
+          return location.origin + p;
+        };
+        var openAppQR = function () {
+          QRModal.open(getAppUrl(), "アプリを配る");
+        };
+
+        on(byId("btn-line"), openLineShare);
+        on(byId("hub-line"), openLineShare);
+        on(byId("gm-line"), openLineShare);
+        on(byId("hub-invite-qr"), openInviteQR);
+        on(byId("gm-invite"), openInviteQR);
+        on(byId("hub-app-qr"), openAppQR);
+
+        // インストール案内
+        on(byId("install-banner"), function () {
+          // OS 判定でガイドを切替
+          var ua = navigator.userAgent || "";
+          var isIOS = /iPhone|iPad|iPod/i.test(ua);
+          var iosEl = byId("install-guide-ios");
+          var andEl = byId("install-guide-android");
+          if (iosEl) iosEl.style.display = isIOS ? "" : "none";
+          if (andEl) andEl.style.display = isIOS ? "none" : "";
+          openModal("install");
         });
+
+        // インストールバナーのヒント文化 (スタンドアロンPWA判定)
+        (function () {
+          var isStandalone =
+            (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
+            window.navigator.standalone === true;
+          var banner = byId("install-banner");
+          var hint = byId("install-hint");
+          if (isStandalone && banner) banner.style.display = "none";
+          if (hint) {
+            var ua = navigator.userAgent || "";
+            var isIOS = /iPhone|iPad|iPod/i.test(ua);
+            hint.textContent = isIOS ? "Safariの共有ボタンから追加" : "Chromeのメニューからインストール";
+          }
+        })();
         on(byId("btn-start"), function () {
           // 一度も設定してなければ null → 現在時刻+45分で初期化
           TimePicker.open(state.startTimeSetByUser ? state.startTime : null, function (val) {
             state.startTime = val;
             state.startTimeSetByUser = true;
             var el = byId("start-time-label");
-            if (el) el.textContent = val;
+            if (el) el.textContent = val || "──:──";
           });
         });
         on(byId("btn-locker"), function () {
           LockerPicker.open(state.lockerNumber, function (val) {
             state.lockerNumber = val;
             var el = byId("locker-label");
-            if (el) el.textContent = val != null ? val : "─";
+            if (el) el.textContent = val != null ? val : "───";
           });
         });
         on(byId("nav-home"), function () { switchNav("home"); });
@@ -745,6 +846,10 @@
         setT("mp-lastnamekana", p.lastNameKana);
         setT("mp-firstname", p.firstName);
         setT("mp-firstnamekana", p.firstNameKana);
+        // プレイヤー1人目（自分）の名前をニックネームで上書き
+        if (state.players && state.players[0]) {
+          state.players[0].name = p.nickname || "あなた";
+        }
       }
 
       function renderHome() {
