@@ -1086,21 +1086,42 @@
         setT("sr-out", round.outStrokes);
         setT("sr-in", round.inStrokes);
         setT("sr-putt", round.puttTotal);
+        // v1.7: スコアカード形式で描画（OUT / IN 2行）
         var holesEl = byId("sr-holes");
         if (holesEl) {
-          var html = '<div class="gl-summary-result__holes__grid">';
-          for (var i = 0; i < round.holes.length; i++) {
-            var h = round.holes[i];
-            var d = (h.strokes != null && h.par != null) ? (h.strokes - h.par) : null;
-            var cls = d == null ? "" : d < 0 ? "is-under" : d > 0 ? "is-over" : "is-even";
-            html += '<div class="gl-summary-result__hole ' + cls + '">' +
-              '<div class="gl-summary-result__hole__num">' + h.holeNumber + 'H</div>' +
-              '<div class="gl-summary-result__hole__par">P' + h.par + '</div>' +
-              '<div class="gl-summary-result__hole__strokes">' + (h.strokes != null ? h.strokes : "─") + '</div>' +
-              '</div>';
-          }
-          html += '</div>';
+          var buildRow = function (holes, label, fromIdx) {
+            var sumStrokes = 0, sumPar = 0;
+            var headHtml = '<div class="gl-scorecard__cell gl-scorecard__cell--head">' + label + '</div>';
+            var parRow = '<div class="gl-scorecard__row gl-scorecard__row--par"><div class="gl-scorecard__cell gl-scorecard__cell--label">PAR</div>';
+            var strokeRow = '<div class="gl-scorecard__row gl-scorecard__row--score"><div class="gl-scorecard__cell gl-scorecard__cell--label">SC</div>';
+            var holeRow = '<div class="gl-scorecard__row gl-scorecard__row--head">' + headHtml;
+            for (var i = 0; i < holes.length; i++) {
+              var h = holes[i];
+              var s = h.strokes;
+              var d = (s != null && h.par != null) ? (s - h.par) : null;
+              var cls = d == null ? "" : d < 0 ? "is-under" : d > 0 ? "is-over" : "is-even";
+              if (s != null) sumStrokes += s;
+              if (h.par != null) sumPar += h.par;
+              holeRow += '<div class="gl-scorecard__cell gl-scorecard__cell--hole">' + h.holeNumber + '</div>';
+              parRow += '<div class="gl-scorecard__cell gl-scorecard__cell--par">' + (h.par != null ? h.par : "─") + '</div>';
+              strokeRow += '<div class="gl-scorecard__cell gl-scorecard__cell--score ' + cls + '">' + (s != null ? s : "─") + '</div>';
+            }
+            holeRow += '<div class="gl-scorecard__cell gl-scorecard__cell--total">' + label + '</div></div>';
+            parRow += '<div class="gl-scorecard__cell gl-scorecard__cell--partotal">' + sumPar + '</div></div>';
+            var diff = sumStrokes - sumPar;
+            var totalCls = diff < 0 ? "is-under" : diff > 0 ? "is-over" : "is-even";
+            strokeRow += '<div class="gl-scorecard__cell gl-scorecard__cell--sctotal ' + totalCls + '">' + sumStrokes + '</div></div>';
+            return holeRow + parRow + strokeRow;
+          };
+          var outHoles = round.holes.slice(0, 9);
+          var inHoles = round.holes.slice(9, 18);
+          var html = '<div class="gl-scorecard">' +
+                     buildRow(outHoles, "OUT") +
+                     '<div class="gl-scorecard__spacer"></div>' +
+                     buildRow(inHoles, "IN") +
+                     '</div>';
           holesEl.innerHTML = html;
+          holesEl.style.display = ""; // ★ 前の非表示指定を上書きして表示
         }
       }
 

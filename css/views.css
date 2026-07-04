@@ -581,9 +581,18 @@
     display: none;
   }
 
+  /* v1.7: ★ タブの上の余白を検律に削除 */
+  #view-golf-score .gl-content > * { margin-top: 0 !important; }
+  #view-golf-score { padding-top: 0 !important; }
+
   /* =============================================
      【組表示】横向き：4人全員が縦幅に収まる + 数字大型化
      ============================================= */
+  /* v1.7: ★ 組表示（tab-summary）ではハイライトを非表示 */
+  #view-golf-score #view-summary .gl-col-current {
+    outline: none !important;
+    background: transparent !important;
+  }
   #view-golf-score .gl-scoretable--compact,
   #view-golf-score .gl-scoretable--wide {
     --gl-hole-w: 58px !important;
@@ -609,11 +618,17 @@
     line-height: 1.1;
   }
   /* プレイヤー行のセル：数字をドンと大きく、行高を均等に分割 */
-  #view-golf-score .gl-scoretable__table td {
-    padding: 4px 2px;
-    font-size: 26px;      /* ★ スコア数字を大きく（老眼対策）*/
+  #view-golf-score #view-summary .gl-scoretable__table td {
+    padding: 3px 2px;
+    font-size: 24px;      /* ★ スコア数字を大きく（老眼対策）*/
     font-weight: 800;
     line-height: 1;
+    height: auto;
+  }
+  /* v1.7: ★ 組表示のテーブルの高さを上限として確保し、4人届くようにする */
+  #view-golf-score #view-summary .gl-scoretable__wrap {
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
   }
   /* プレイヤー名列 */
   #view-golf-score .gl-col-name {
@@ -629,9 +644,15 @@
   /* PAR行は控えめ */
   #view-golf-score .gl-scoretable__table tr.gl-row-par td,
   #view-golf-score .gl-scoretable__table tr.gl-row-par th {
-    font-size: 14px;
+    font-size: 13px;
     padding: 2px 2px;
-    height: 24px;
+    height: 20px;
+  }
+  /* v1.7: タグ「自分」もコンパクトに */
+  #view-golf-score .gl-tag-self {
+    font-size: 9px;
+    padding: 1px 6px;
+    margin: 1px auto 0;
   }
 
   /* =============================================
@@ -643,10 +664,14 @@
     padding: 4px 8px 6px;
     flex: 0 0 auto;
   }
-  /* 入力パネルの上にスコアテーブルも見えるようにしつつ、入力にスペースを割く */
+  /* v1.7: 入力タブでテーブルを小さくし、入力パネルに十分なスペースを確保 */
   #view-golf-score #view-input .gl-scoretable__wrap {
-    max-height: 100px;
+    max-height: 78px;
     flex: 0 0 auto;
+  }
+  #view-golf-score #view-input .gl-scoretable__table td {
+    font-size: 14px;
+    padding: 2px 2px;
   }
   /* モードタブ（シンプル/カウンター）はコンパクト */
   #view-golf-score #view-input .gl-inputpanel__modetabs {
@@ -658,31 +683,35 @@
   }
   /* ★ ストロークボタンの数字を倧大に（縦向きよりも大きく） */
   #view-golf-score #view-input .gl-simple {
-    grid-template-columns: 44px 1fr 1fr 1fr 44px;
-    gap: 6px;
+    grid-template-columns: 48px 1fr 1fr 1fr 48px;
+    gap: 8px;
+    padding: 0 4px;
   }
   #view-golf-score #view-input .gl-simple__btn {
-    min-height: 62px;
+    min-height: 78px !important;
+    max-height: 92px;
   }
   #view-golf-score #view-input .gl-simple__btn .num {
-    font-size: 34px !important;   /* ★ 大きめの数字 */
-    font-weight: 900;
+    font-size: 48px !important;   /* ★ 倧大化（縦向きの倍以上）*/
+    font-weight: 900 !important;
+    line-height: 1;
   }
   #view-golf-score #view-input .gl-simple__btn .lbl {
-    font-size: 10px;
+    font-size: 11px;
+    margin-top: 4px;
   }
   #view-golf-score #view-input .gl-simple__btn--minus,
   #view-golf-score #view-input .gl-simple__btn--plus {
-    min-height: 44px;
-    max-height: 62px;
+    min-height: 48px !important;
+    max-height: 58px;
   }
   #view-golf-score #view-input .gl-simple__btn--minus .num,
   #view-golf-score #view-input .gl-simple__btn--plus .num {
-    font-size: 26px !important;
+    font-size: 32px !important;
   }
   /* カウンターモードの大きな数字も倧大化 */
   #view-golf-score #view-input .gl-counter__display .num {
-    font-size: 44px !important;
+    font-size: 56px !important;
   }
   /* パット行はコンパクト */
   #view-golf-score #view-input .gl-putt {
@@ -845,8 +874,92 @@
   line-height: 1.1;
 }
 
-/* v1.6: ホール数字グリッドは非表示（要件により削除） */
-.gl-summary-result__holes { display: none !important; }
+/* v1.7: 旧 ホールグリッドは非表示（スコアカード形式に切り替え）*/
+.gl-summary-result__holes__grid { display: none !important; }
+
+/* v1.7: サマリーのスコアカード形式表示 */
+.gl-scorecard {
+  background: #fff;
+  border: 1px solid #E6E8EB;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.gl-scorecard__spacer { height: 8px; background: #F6F8FA; }
+.gl-scorecard__row {
+  display: grid;
+  /* ラベル + 9ホール + トータル列 = 11 */
+  grid-template-columns: 42px repeat(9, 1fr) 44px;
+  align-items: stretch;
+}
+.gl-scorecard__row--head {
+  background: #F0F3F6;
+  border-bottom: 1px solid #E6E8EB;
+}
+.gl-scorecard__row--par {
+  background: #FAFBFC;
+  border-bottom: 1px solid #EEF0F2;
+}
+.gl-scorecard__cell {
+  text-align: center;
+  padding: 6px 2px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #333;
+  border-right: 1px solid #EEF0F2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.gl-scorecard__cell:last-child { border-right: none; }
+.gl-scorecard__cell--head,
+.gl-scorecard__cell--total {
+  background: #3BB774;
+  color: #fff;
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+}
+.gl-scorecard__cell--hole {
+  font-size: 13px;
+  color: #7a7a7a;
+  font-weight: 700;
+}
+.gl-scorecard__cell--label {
+  background: #F0F3F6;
+  font-size: 12px;
+  color: #555;
+  font-weight: 700;
+}
+.gl-scorecard__cell--par {
+  font-size: 15px;
+  color: #7a7a7a;
+  font-weight: 700;
+}
+.gl-scorecard__cell--partotal {
+  background: #F0F3F6;
+  font-size: 15px;
+  color: #333;
+  font-weight: 800;
+}
+.gl-scorecard__cell--score {
+  font-size: 22px;
+  font-weight: 800;
+  font-family: 'SF Mono', 'Menlo', monospace;
+  color: #2b2b2b;
+}
+.gl-scorecard__cell--score.is-under { background: #E7F5FF; color: #1976D2; }
+.gl-scorecard__cell--score.is-over { background: #FFF3F3; color: #D32F2F; }
+.gl-scorecard__cell--score.is-even { color: #333; }
+.gl-scorecard__cell--sctotal {
+  background: #FFF7DE;
+  font-size: 18px;
+  font-weight: 800;
+  font-family: 'SF Mono', 'Menlo', monospace;
+  color: #B26A00;
+}
+.gl-scorecard__cell--sctotal.is-under { background: #E3F2FD; color: #1976D2; }
+.gl-scorecard__cell--sctotal.is-over { background: #FDECEA; color: #D32F2F; }
 
 .gl-summary-result__holes__grid {
   display: grid;
