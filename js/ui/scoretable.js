@@ -29,7 +29,7 @@ const ScoreTable = {
     // ==== Header ====
     const thead = document.createElement("thead");
     const trHead = document.createElement("tr");
-    trHead.innerHTML = `<th class="gl-col-name">プレイヤー</th>`;
+    trHead.innerHTML = `<th class="gl-col-name"></th>`;
     sections.forEach(sec => {
       sec.holes.forEach(h => {
         const isCurrent = (h.holeNumber === data.currentHole);

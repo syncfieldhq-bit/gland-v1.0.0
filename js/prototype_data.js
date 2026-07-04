@@ -19,8 +19,8 @@ var PROTOTYPE_HOLES = [
   { holeNumber: 11, par: 4, yard: 390, hasT: false, strokes: null, putts: null },
   { holeNumber: 12, par: 4, yard: 289, hasT: true,  strokes: null, putts: null },
   { holeNumber: 13, par: 5, yard: 502, hasT: false, strokes: null, putts: null },
-  { holeNumber: 14, par: 3, yard: 175, hasT: false, strokes: null, putts: null },
-  { holeNumber: 15, par: 4, yard: 388, hasT: false, strokes: null, putts: null },
+  { holeNumber: 14, par: 4, yard: 388, hasT: false, strokes: null, putts: null },
+  { holeNumber: 15, par: 3, yard: 175, hasT: false, strokes: null, putts: null },
   { holeNumber: 16, par: 5, yard: 493, hasT: true,  strokes: null, putts: null },
   { holeNumber: 17, par: 3, yard: 180, hasT: true,  strokes: null, putts: null },
   { holeNumber: 18, par: 4, yard: 370, hasT: false, strokes: null, putts: null }

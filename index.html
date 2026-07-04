@@ -59,6 +59,11 @@
             <div class="gl-hub__card__title">マイページ</div>
             <div class="gl-hub__card__desc">プロフィール設定</div>
           </button>
+          <button class="gl-hub__card gl-hub__card--history" id="hub-history">
+            <div class="gl-hub__card__icon">📊</div>
+            <div class="gl-hub__card__title">ラウンド履歴</div>
+            <div class="gl-hub__card__desc">過去のスコアを見る</div>
+          </button>
         </div>
 
         <!-- 共有 (ホームはアプリ配布とLINEの2つだけ、ラウンド招待はスコアカードへ) -->
@@ -295,6 +300,142 @@
     </div>
     </div><!-- /view-golf-score -->
 
+    <!-- ==== 🏆 ラウンド完了サマリー画面 ==== -->
+    <div id="view-summary-result" class="gl-view" style="display:none">
+      <div class="gl-summary-result">
+        <div class="gl-summary-result__title">🏆 ラウンド完了！</div>
+        <div class="gl-summary-result__course" id="sr-course">─</div>
+        <div class="gl-summary-result__date" id="sr-date">─</div>
+
+        <div class="gl-summary-result__score">
+          <div class="gl-summary-result__score__total" id="sr-total">─</div>
+          <div class="gl-summary-result__score__diff" id="sr-diff">─</div>
+        </div>
+
+        <div class="gl-summary-result__oi">
+          <div class="gl-summary-result__oi__cell">
+            <div class="gl-summary-result__oi__label">OUT</div>
+            <div class="gl-summary-result__oi__value" id="sr-out">─</div>
+          </div>
+          <div class="gl-summary-result__oi__cell">
+            <div class="gl-summary-result__oi__label">IN</div>
+            <div class="gl-summary-result__oi__value" id="sr-in">─</div>
+          </div>
+          <div class="gl-summary-result__oi__cell">
+            <div class="gl-summary-result__oi__label">パット</div>
+            <div class="gl-summary-result__oi__value" id="sr-putt">─</div>
+          </div>
+        </div>
+
+        <div class="gl-summary-result__holes" id="sr-holes"></div>
+
+        <div class="gl-summary-result__actions">
+          <button class="gl-summary-result__btn gl-summary-result__btn--ghost" id="sr-history">📊 履歴一覧を見る</button>
+          <button class="gl-summary-result__btn gl-summary-result__btn--primary" id="sr-home">🏠 ホームに戻る</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==== 📊 ラウンド履歴ページ ==== -->
+    <div id="view-history" class="gl-view" style="display:none">
+      <div class="gl-history">
+        <div class="gl-history__hero">
+          <div class="gl-history__hero__title">📊 ラウンド履歴</div>
+          <div class="gl-history__hero__sub">G-LAND スコア記録</div>
+        </div>
+
+        <div class="gl-history__stats">
+          <div class="gl-history__stat">
+            <div class="gl-history__stat__label">ラウンド数</div>
+            <div class="gl-history__stat__value" id="hs-count">0</div>
+          </div>
+          <div class="gl-history__stat">
+            <div class="gl-history__stat__label">ベスト</div>
+            <div class="gl-history__stat__value gl-history__stat__value--best" id="hs-best">─</div>
+          </div>
+          <div class="gl-history__stat">
+            <div class="gl-history__stat__label">平均</div>
+            <div class="gl-history__stat__value gl-history__stat__value--avg" id="hs-avg">─</div>
+          </div>
+        </div>
+
+        <div class="gl-history__filters">
+          <label class="gl-history__filter">
+            <span class="gl-history__filter__label">コース</span>
+            <select id="hs-course-filter" class="gl-history__filter__select">
+              <option value="">全コース</option>
+            </select>
+          </label>
+          <label class="gl-history__filter">
+            <span class="gl-history__filter__label">期間</span>
+            <select id="hs-period-filter" class="gl-history__filter__select">
+              <option value="all">全期間</option>
+              <option value="5">直近5ラウンド</option>
+              <option value="10">直近10ラウンド</option>
+              <option value="20">直近20ラウンド</option>
+              <option value="3m">直近3カ月</option>
+              <option value="6m">直近6カ月</option>
+              <option value="1y">直近1年</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="gl-history__sort">
+          <button class="gl-history__sort__btn gl-history__sort__btn--active" data-sort="date">🗓️ 日付順</button>
+          <button class="gl-history__sort__btn" data-sort="score">🏌️ スコア順</button>
+        </div>
+
+        <div class="gl-history__list" id="hs-list">
+          <div class="gl-history__empty">該当するラウンドがありません</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==== ラウンド詳細ページ ==== -->
+    <div id="view-round-detail" class="gl-view" style="display:none">
+      <div class="gl-history-detail">
+        <div class="gl-history-detail__topbar">
+          <button class="gl-history-detail__back" id="rd-back">← 履歴一覧</button>
+        </div>
+        <div class="gl-history-detail__hero">
+          <div class="gl-history-detail__course" id="rd-course">─</div>
+          <div class="gl-history-detail__date" id="rd-date">─</div>
+          <div class="gl-history-detail__score">
+            <span class="gl-history-detail__total" id="rd-total">─</span>
+            <span class="gl-history-detail__diff" id="rd-diff">─</span>
+          </div>
+          <div class="gl-history-detail__meta" id="rd-meta">─</div>
+        </div>
+
+        <div class="gl-history-detail__mode">
+          <button class="gl-history-detail__mode__btn gl-history-detail__mode__btn--active" data-mode="stroke">ストローク</button>
+          <button class="gl-history-detail__mode__btn" data-mode="plusminus">±表示</button>
+          <button class="gl-history-detail__mode__btn" data-mode="symbol">◎-△</button>
+        </div>
+
+        <div class="gl-history-detail__table" id="rd-table"></div>
+
+        <div class="gl-history-detail__actions">
+          <button class="gl-history-detail__btn gl-history-detail__btn--line" id="rd-line">💬 LINEで送る</button>
+          <button class="gl-history-detail__btn gl-history-detail__btn--delete" id="rd-delete">🗑️ 削除</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==== 💾 ラウンド保存確認モーダル ==== -->
+    <div id="save-round-modal" class="gl-modal" style="display:none">
+      <div class="gl-modal__backdrop" data-close="save-round"></div>
+      <div class="gl-modal__panel">
+        <div class="gl-modal__title">🏆 ラウンド完了！</div>
+        <div class="gl-saveround__hint">18H まで入力しました。<br>このラウンドを履歴に保存しますか？</div>
+        <div class="gl-saveround__preview" id="save-round-preview"></div>
+        <div class="gl-modal__actions">
+          <button class="gl-modal__btn gl-modal__btn--ghost" data-close="save-round">キャンセル</button>
+          <button class="gl-modal__btn gl-modal__btn--primary" id="save-round-ok">💾 保存して終了</button>
+        </div>
+      </div>
+    </div>
+
     <!-- ==== 下部ナビゲーション (3タブ) ==== -->
     <div class="gl-bottomnav">
       <a class="gl-bottomnav__item" id="nav-home">
@@ -498,6 +639,7 @@
             onCommit: function () {
               state.lastUpdate = timeNow();
               var max = getMaxHole();
+              var justCompleted18 = false;
               // ロジック:
               // (a) 通常入力中 (currentHole === workingHole) → 次ホールに進む、workingHole も進む
               // (b) 過去のホールを修正中 (currentHole ≠ workingHole) → workingHole に戻る
@@ -505,12 +647,19 @@
                 if (state.workingHole < max) {
                   state.workingHole++;
                   state.currentHole = state.workingHole;
+                } else {
+                  // 18H の確定（最終ホール）
+                  justCompleted18 = true;
                 }
               } else {
                 // 修正モード → workingHole に戻る
                 state.currentHole = state.workingHole;
               }
+              // 自動保存（1ホール入力の度に）
+              autosaveCurrentRound();
               renderAll();
+              // 18H 確定後は保存モーダルを出す
+              if (justCompleted18) openSaveRoundModal();
             }
           });
         } catch (e) {
@@ -781,9 +930,320 @@
           renderHome();
           closeModal("profile");
         });
+
+        // ホームの「ラウンド履歴」カード
+        on(byId("hub-history"), function () {
+          state.historySort = "date";
+          state.historyPeriod = "all";
+          state.historyCourseFilter = "";
+          showViewOnly("view-history");
+          renderHistoryPage();
+        });
+
+        // サマリー画面のボタン
+        on(byId("sr-history"), function () {
+          state.historySort = "date";
+          state.historyPeriod = "all";
+          state.historyCourseFilter = "";
+          showViewOnly("view-history");
+          renderHistoryPage();
+        });
+        on(byId("sr-home"), function () {
+          switchNav("home");
+        });
+
+        // 履歴ページのソート・フィルター
+        var sortBtns = document.querySelectorAll(".gl-history__sort__btn");
+        for (var si = 0; si < sortBtns.length; si++) {
+          (function (btn) {
+            on(btn, function () {
+              for (var j = 0; j < sortBtns.length; j++) sortBtns[j].classList.remove("gl-history__sort__btn--active");
+              btn.classList.add("gl-history__sort__btn--active");
+              state.historySort = btn.getAttribute("data-sort") || "date";
+              renderHistoryPage();
+            });
+          })(sortBtns[si]);
+        }
+        var courseFilter = byId("hs-course-filter");
+        if (courseFilter) courseFilter.addEventListener("change", function () {
+          state.historyCourseFilter = courseFilter.value;
+          renderHistoryPage();
+        });
+        var periodFilter = byId("hs-period-filter");
+        if (periodFilter) periodFilter.addEventListener("change", function () {
+          state.historyPeriod = periodFilter.value;
+          renderHistoryPage();
+        });
+
+        // ラウンド詳細ページ
+        on(byId("rd-back"), function () {
+          showViewOnly("view-history");
+          renderHistoryPage();
+        });
+        var modeBtns = document.querySelectorAll(".gl-history-detail__mode__btn");
+        for (var mi = 0; mi < modeBtns.length; mi++) {
+          (function (btn) {
+            on(btn, function () {
+              for (var j = 0; j < modeBtns.length; j++) modeBtns[j].classList.remove("gl-history-detail__mode__btn--active");
+              btn.classList.add("gl-history-detail__mode__btn--active");
+              state.detailMode = btn.getAttribute("data-mode") || "stroke";
+              renderRoundDetailTable();
+            });
+          })(modeBtns[mi]);
+        }
+        on(byId("rd-line"), function () {
+          var r = state.detailRound; if (!r) return;
+          var text = "ゴルフスコア：" + r.course + " (" + r.date + ")\n"
+            + "スコア: " + r.total + " (" + (r.diff >= 0 ? "+" : "") + r.diff + ")\n"
+            + "OUT: " + r.outStrokes + " / IN: " + r.inStrokes + " / パット: " + r.puttTotal;
+          var lineUrl = "https://line.me/R/msg/text/?" + encodeURIComponent(text);
+          window.open(lineUrl, "_blank");
+        });
+        on(byId("rd-delete"), function () {
+          var r = state.detailRound; if (!r) return;
+          if (!confirm("このラウンドを削除しますか？")) return;
+          deleteRoundFromHistory(r.id);
+          showViewOnly("view-history");
+          renderHistoryPage();
+        });
+
+        // ラウンド保存モーダル
+        on(byId("save-round-ok"), function () {
+          var saved = saveRoundToHistory();
+          closeModal("save-round");
+          if (saved) {
+            state.lastSavedRound = saved;
+            showViewOnly("view-summary-result");
+            renderSummaryResult(saved);
+          } else {
+            alert("保存に失敗しました");
+          }
+        });
       }
 
       // ====== ナビゲーション・ビュー制御 ======
+
+      // ナビゲーションを介さず、1つのビューだけを表示 (履歴/詳細/サマリー)
+      function showViewOnly(id) {
+        var views = [
+          "view-home", "view-golf-menu", "view-golf-score", "view-mypage",
+          "view-history", "view-round-detail", "view-summary-result"
+        ];
+        for (var i = 0; i < views.length; i++) {
+          showView(views[i], views[i] === id);
+        }
+        var navs = ["nav-home", "nav-golf", "nav-mypage"];
+        for (var j = 0; j < navs.length; j++) {
+          var el = byId(navs[j]); if (el) el.classList.remove("gl-bottomnav__item--active");
+        }
+      }
+
+      function openSaveRoundModal() {
+        var self = state.players[0]; if (!self) return;
+        var strokes = self.holes.map(function (h) { return h.strokes; });
+        var pars = self.holes.map(function (h) { return h.par; });
+        var sum = function (arr, from, to) {
+          var s = 0; for (var i = from; i <= to; i++) if (arr[i] != null) s += arr[i]; return s;
+        };
+        var totalPar = sum(pars, 0, 17);
+        var total = sum(strokes, 0, 17);
+        var diff = total - totalPar;
+        var out = sum(strokes, 0, 8);
+        var inS = sum(strokes, 9, 17);
+        var preview = byId("save-round-preview");
+        if (preview) {
+          preview.innerHTML =
+            '<div class="gl-saveround__course">' + (state.course || "コース未選択") + '</div>' +
+            '<div class="gl-saveround__total"><span class="gl-saveround__total__num">' + total + '</span>' +
+            '<span class="gl-saveround__total__diff ' + (diff > 0 ? "plus" : diff < 0 ? "minus" : "even") + '">' +
+            (diff > 0 ? "+" + diff : diff === 0 ? "E" : diff) + '</span></div>' +
+            '<div class="gl-saveround__oi">OUT ' + out + ' ・ IN ' + inS + '</div>';
+        }
+        openModal("save-round");
+      }
+
+      function renderSummaryResult(round) {
+        var setT = function (id, v) { var el = byId(id); if (el) el.textContent = v; };
+        setT("sr-course", round.course);
+        setT("sr-date", round.date);
+        setT("sr-total", round.total);
+        var diffTxt = round.diff > 0 ? "+" + round.diff : round.diff === 0 ? "E" : String(round.diff);
+        var diffEl = byId("sr-diff");
+        if (diffEl) {
+          diffEl.textContent = diffTxt;
+          diffEl.className = "gl-summary-result__score__diff " +
+            (round.diff > 0 ? "is-plus" : round.diff < 0 ? "is-minus" : "is-even");
+        }
+        setT("sr-out", round.outStrokes);
+        setT("sr-in", round.inStrokes);
+        setT("sr-putt", round.puttTotal);
+        var holesEl = byId("sr-holes");
+        if (holesEl) {
+          var html = '<div class="gl-summary-result__holes__grid">';
+          for (var i = 0; i < round.holes.length; i++) {
+            var h = round.holes[i];
+            var d = (h.strokes != null && h.par != null) ? (h.strokes - h.par) : null;
+            var cls = d == null ? "" : d < 0 ? "is-under" : d > 0 ? "is-over" : "is-even";
+            html += '<div class="gl-summary-result__hole ' + cls + '">' +
+              '<div class="gl-summary-result__hole__num">' + h.holeNumber + 'H</div>' +
+              '<div class="gl-summary-result__hole__par">P' + h.par + '</div>' +
+              '<div class="gl-summary-result__hole__strokes">' + (h.strokes != null ? h.strokes : "─") + '</div>' +
+              '</div>';
+          }
+          html += '</div>';
+          holesEl.innerHTML = html;
+        }
+      }
+
+      function renderHistoryPage() {
+        var list = getHistory();
+        var courseFilter = byId("hs-course-filter");
+        if (courseFilter) {
+          var courses = {};
+          list.forEach(function (r) { if (r.course) courses[r.course] = true; });
+          var opts = '<option value="">全コース</option>';
+          Object.keys(courses).forEach(function (c) {
+            opts += '<option value="' + c.replace(/"/g, "&quot;") + '"' +
+              (state.historyCourseFilter === c ? " selected" : "") + '>' + c + '</option>';
+          });
+          courseFilter.innerHTML = opts;
+        }
+        var filtered = list.slice();
+        if (state.historyCourseFilter) {
+          filtered = filtered.filter(function (r) { return r.course === state.historyCourseFilter; });
+        }
+        var period = state.historyPeriod || "all";
+        var now = Date.now();
+        var day = 24 * 60 * 60 * 1000;
+        if (/^\d+$/.test(period)) {
+          filtered.sort(function (a, b) { return b.savedAt - a.savedAt; });
+          filtered = filtered.slice(0, parseInt(period, 10));
+        } else if (period === "3m") {
+          filtered = filtered.filter(function (r) { return (now - r.savedAt) <= 90 * day; });
+        } else if (period === "6m") {
+          filtered = filtered.filter(function (r) { return (now - r.savedAt) <= 180 * day; });
+        } else if (period === "1y") {
+          filtered = filtered.filter(function (r) { return (now - r.savedAt) <= 365 * day; });
+        }
+        byId("hs-count").textContent = String(filtered.length);
+        if (filtered.length > 0) {
+          var best = Math.min.apply(null, filtered.map(function (r) { return r.total; }));
+          var avg = filtered.reduce(function (s, r) { return s + r.total; }, 0) / filtered.length;
+          byId("hs-best").textContent = String(best);
+          byId("hs-avg").textContent = avg.toFixed(1);
+        } else {
+          byId("hs-best").textContent = "─";
+          byId("hs-avg").textContent = "─";
+        }
+        if (state.historySort === "score") {
+          filtered.sort(function (a, b) { return a.total - b.total; });
+        } else {
+          filtered.sort(function (a, b) { return b.savedAt - a.savedAt; });
+        }
+        var listEl = byId("hs-list");
+        if (!listEl) return;
+        if (filtered.length === 0) {
+          listEl.innerHTML = '<div class="gl-history__empty">該当するラウンドがありません</div>';
+          return;
+        }
+        var html = "";
+        filtered.forEach(function (r) {
+          var diffTxt = r.diff > 0 ? "+" + r.diff : r.diff === 0 ? "E" : String(r.diff);
+          var diffCls = r.diff > 0 ? "is-plus" : r.diff < 0 ? "is-minus" : "is-even";
+          html += '<button class="gl-history__card" data-id="' + r.id + '">' +
+            '<div class="gl-history__card__score">' +
+            '<div class="gl-history__card__total">' + r.total + '</div>' +
+            '<div class="gl-history__card__diff ' + diffCls + '">' + diffTxt + '</div>' +
+            '</div>' +
+            '<div class="gl-history__card__body">' +
+            '<div class="gl-history__card__date">' + r.date + '</div>' +
+            '<div class="gl-history__card__course">' + r.course + '</div>' +
+            '<div class="gl-history__card__meta">18H ・ ' + r.rounds + '</div>' +
+            '</div>' +
+            '<div class="gl-history__card__chev">›</div>' +
+            '</button>';
+        });
+        listEl.innerHTML = html;
+        var cards = listEl.querySelectorAll(".gl-history__card");
+        for (var i = 0; i < cards.length; i++) {
+          (function (card) {
+            on(card, function () {
+              var id = card.getAttribute("data-id");
+              var round = getHistory().find(function (r) { return r.id === id; });
+              if (round) {
+                state.detailRound = round;
+                state.detailMode = "stroke";
+                showViewOnly("view-round-detail");
+                renderRoundDetail(round);
+              }
+            });
+          })(cards[i]);
+        }
+      }
+
+      function renderRoundDetail(round) {
+        var setT = function (id, v) { var el = byId(id); if (el) el.textContent = v; };
+        setT("rd-course", round.course);
+        setT("rd-date", round.date);
+        setT("rd-total", round.total);
+        var diffTxt = round.diff > 0 ? "+" + round.diff : round.diff === 0 ? "E" : String(round.diff);
+        var diffEl = byId("rd-diff");
+        if (diffEl) {
+          diffEl.textContent = diffTxt;
+          diffEl.className = "gl-history-detail__diff " +
+            (round.diff > 0 ? "is-plus" : round.diff < 0 ? "is-minus" : "is-even");
+        }
+        setT("rd-meta", "18H ・ " + round.rounds + " ・ " + round.startSide + "スタート ・ パット" + round.puttTotal);
+        var modeBtns = document.querySelectorAll(".gl-history-detail__mode__btn");
+        for (var i = 0; i < modeBtns.length; i++) {
+          modeBtns[i].classList.toggle("gl-history-detail__mode__btn--active",
+            modeBtns[i].getAttribute("data-mode") === (state.detailMode || "stroke"));
+        }
+        renderRoundDetailTable();
+      }
+
+      function renderRoundDetailTable() {
+        var r = state.detailRound; if (!r) return;
+        var mode = state.detailMode || "stroke";
+        var tblEl = byId("rd-table");
+        if (!tblEl) return;
+        var out = r.holes.slice(0, 9);
+        var ins = r.holes.slice(9, 18);
+        var fmt = function (h) {
+          if (h.strokes == null) return "─";
+          var d = h.strokes - h.par;
+          if (mode === "stroke") return String(h.strokes);
+          if (mode === "plusminus") return d > 0 ? "+" + d : d === 0 ? "E" : String(d);
+          if (d === 0) return "─";
+          if (d === -2) return "◎";
+          if (d === -1) return "○";
+          if (d === 1) return "△";
+          if (d === 2) return "□";
+          if (d < 0) return "◎";
+          return "+" + d;
+        };
+        var buildSection = function (label, holes) {
+          var totalStrokes = holes.reduce(function (s, h) { return s + (h.strokes || 0); }, 0);
+          var totalPar = holes.reduce(function (s, h) { return s + h.par; }, 0);
+          var totalDiff = totalStrokes - totalPar;
+          var totalDiffTxt = totalDiff > 0 ? "+" + totalDiff : totalDiff === 0 ? "E" : String(totalDiff);
+          var head = '<tr><th class="gl-rdt__label">' + label + '</th>';
+          var parRow = '<tr><td class="gl-rdt__label">Par</td>';
+          var scoreRow = '<tr><td class="gl-rdt__label gl-rdt__label--score">' + r.playerName + '</td>';
+          holes.forEach(function (h) {
+            head += '<th>' + h.holeNumber + '</th>';
+            parRow += '<td>' + h.par + '</td>';
+            scoreRow += '<td class="gl-rdt__score">' + fmt(h) + '</td>';
+          });
+          head += '<th class="gl-rdt__sum">計</th></tr>';
+          parRow += '<td class="gl-rdt__sum">' + totalPar + '</td></tr>';
+          scoreRow += '<td class="gl-rdt__sum gl-rdt__sum--score">' + totalStrokes +
+            '<span class="gl-rdt__diff">(' + totalDiffTxt + ')</span></td></tr>';
+          return '<table class="gl-rdt__table"><thead>' + head + '</thead><tbody>' + parRow + scoreRow + '</tbody></table>';
+        };
+        tblEl.innerHTML = buildSection("OUT", out) + buildSection("IN", ins);
+      }
+
       function switchNav(nav) {
         state.currentNav = nav;
         // 下部ナビバーのactive切替
@@ -803,6 +1263,10 @@
           showView("view-golf-menu", false);
           showView("view-golf-score", false);
         }
+        // 履歴/詳細/サマリーはナビ切替で常に隠す
+        showView("view-history", false);
+        showView("view-round-detail", false);
+        showView("view-summary-result", false);
         if (nav === "mypage") renderProfile();
         if (nav === "home") renderHome();
       }
@@ -921,7 +1385,179 @@
         if (!isProfileComplete()) openOnboarding();
       }
 
-      window.GL = { state: state, render: renderAll };
+      // ================================================
+      // ラウンドの自動保存・履歴保存・日付リセット
+      // ================================================
+      var CURRENT_ROUND_KEY = "gl_current_round_v1";  // 入力途中のラウンド
+      var HISTORY_KEY = "gl_history_v1";                 // 保存済みのラウンド履歴
+
+      function todayStr() {
+        var d = new Date();
+        return d.getFullYear() + "-" + fmt2(d.getMonth() + 1) + "-" + fmt2(d.getDate());
+      }
+
+      // スコア入力ごとに呼ばれる。現在のラウンド状態をlocalStorageに保存
+      function autosaveCurrentRound() {
+        try {
+          if (typeof localStorage === "undefined") return;
+          var self = state.players && state.players[0];
+          if (!self) return;
+          var data = {
+            date: todayStr(),
+            course: state.course || "",
+            startSide: state.startSide || "OUT",
+            rounds: state.rounds || "1R",
+            startTime: state.startTime || null,
+            startTimeSetByUser: !!state.startTimeSetByUser,
+            lockerNumber: state.lockerNumber || null,
+            currentHole: state.currentHole,
+            workingHole: state.workingHole,
+            holes: self.holes.map(function (h) {
+              return {
+                holeNumber: h.holeNumber,
+                strokes: h.strokes,
+                putts: h.putts
+              };
+            }),
+            savedAt: Date.now()
+          };
+          localStorage.setItem(CURRENT_ROUND_KEY, JSON.stringify(data));
+        } catch (e) { /* ignore */ }
+      }
+
+      // 起動時、入力途中ラウンドの復元を試みる
+      // 同じ日付なら復元、違う日付ならリセット（ロッカーも含めて）
+      function restoreOrResetCurrentRound() {
+        try {
+          if (typeof localStorage === "undefined") return { restored: false, hadData: false };
+          var raw = localStorage.getItem(CURRENT_ROUND_KEY);
+          if (!raw) return { restored: false, hadData: false };
+          var data = JSON.parse(raw);
+          if (!data || !data.date) return { restored: false, hadData: false };
+
+          if (data.date === todayStr()) {
+            // 同日 → 復元
+            var self = state.players[0];
+            if (self && Array.isArray(data.holes)) {
+              for (var i = 0; i < self.holes.length; i++) {
+                var matched = data.holes.find(function (d) { return d.holeNumber === self.holes[i].holeNumber; });
+                if (matched) {
+                  self.holes[i].strokes = matched.strokes;
+                  self.holes[i].putts = matched.putts;
+                }
+              }
+            }
+            if (data.course) state.course = data.course;
+            if (data.startSide) state.startSide = data.startSide;
+            if (data.rounds) state.rounds = data.rounds;
+            if (data.startTime) state.startTime = data.startTime;
+            state.startTimeSetByUser = !!data.startTimeSetByUser;
+            if (data.lockerNumber != null) state.lockerNumber = data.lockerNumber;
+            if (data.currentHole) state.currentHole = data.currentHole;
+            if (data.workingHole) state.workingHole = data.workingHole;
+            return { restored: true, hadData: true };
+          } else {
+            // 日付が違う → リセット（ロッカーもクリア）
+            localStorage.removeItem(CURRENT_ROUND_KEY);
+            return { restored: false, hadData: true };
+          }
+        } catch (e) {
+          return { restored: false, hadData: false };
+        }
+      }
+
+      // 履歴に保存（同日保存は上書き）
+      function saveRoundToHistory() {
+        try {
+          if (typeof localStorage === "undefined") return null;
+          var self = state.players && state.players[0];
+          if (!self) return null;
+          var raw = localStorage.getItem(HISTORY_KEY);
+          var list = raw ? JSON.parse(raw) : [];
+          if (!Array.isArray(list)) list = [];
+
+          // OUT/IN/TOTAL集計
+          var strokes = self.holes.map(function (h) { return h.strokes; });
+          var puttArr = self.holes.map(function (h) { return h.putts; });
+          var pars = self.holes.map(function (h) { return h.par; });
+          var sum = function (arr, from, to) {
+            var s = 0;
+            for (var i = from; i <= to; i++) if (arr[i] != null) s += arr[i];
+            return s;
+          };
+          var outStrokes = sum(strokes, 0, 8);
+          var inStrokes = sum(strokes, 9, 17);
+          var total = outStrokes + inStrokes;
+          var totalPar = sum(pars, 0, 17);
+          var diff = total - totalPar;
+          var puttTotal = sum(puttArr, 0, 17);
+
+          var round = {
+            id: "R-" + todayStr() + "-" + fmt2(new Date().getHours()) + fmt2(new Date().getMinutes()),
+            date: todayStr(),
+            savedAt: Date.now(),
+            course: state.course || "コース未選択",
+            startSide: state.startSide || "OUT",
+            rounds: state.rounds || "1R",
+            startTime: state.startTime || null,
+            playerName: (state.profile && state.profile.lastName) || "あなた",
+            holes: self.holes.map(function (h) {
+              return {
+                holeNumber: h.holeNumber,
+                par: h.par,
+                strokes: h.strokes,
+                putts: h.putts
+              };
+            }),
+            outStrokes: outStrokes,
+            inStrokes: inStrokes,
+            total: total,
+            totalPar: totalPar,
+            diff: diff,
+            puttTotal: puttTotal
+          };
+
+          // 同日同コースの既存ラウンドを上書き
+          var replaced = false;
+          for (var i = 0; i < list.length; i++) {
+            if (list[i].date === round.date && list[i].course === round.course) {
+              list[i] = round;
+              replaced = true;
+              break;
+            }
+          }
+          if (!replaced) list.unshift(round);
+          localStorage.setItem(HISTORY_KEY, JSON.stringify(list));
+          return round;
+        } catch (e) { return null; }
+      }
+
+      function getHistory() {
+        try {
+          if (typeof localStorage === "undefined") return [];
+          var raw = localStorage.getItem(HISTORY_KEY);
+          var list = raw ? JSON.parse(raw) : [];
+          return Array.isArray(list) ? list : [];
+        } catch (e) { return []; }
+      }
+
+      function deleteRoundFromHistory(id) {
+        try {
+          var list = getHistory();
+          var next = list.filter(function (r) { return r.id !== id; });
+          localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
+          return true;
+        } catch (e) { return false; }
+      }
+
+      window.GL = {
+        state: state,
+        render: renderAll,
+        _autosaveCurrentRound: function () { return autosaveCurrentRound(); },
+        _saveRoundToHistory: function () { return saveRoundToHistory(); },
+        _getHistory: function () { return getHistory(); },
+        _restoreOrResetCurrentRound: function () { return restoreOrResetCurrentRound(); }
+      };
 
       // 現在時刻に+X分した"HH:MM"を返す
       function timePlusMin(baseTime, addMin) {
@@ -940,13 +1576,23 @@
       function boot() {
         loadProfile();
         bind();
+
+        // 日付チェック・入力途中ラウンドの復元
+        var restoreResult = restoreOrResetCurrentRound();
+
         renderAll();
         renderProfile();
-        // 後半スタートの初期表示を現在時刻にセット
-        state.startTime = timeNow();
-        state.startTimeSetByUser = false;
+
+        // 復元されない場合のみ、後半スタートを現在時刻に初期化
+        if (!restoreResult.restored) {
+          state.startTime = timeNow();
+          state.startTimeSetByUser = false;
+        }
         var stLabel = byId("start-time-label");
         if (stLabel) stLabel.textContent = state.startTime;
+        var lkLabel = byId("locker-label");
+        if (lkLabel) lkLabel.textContent = state.lockerNumber != null ? state.lockerNumber : "───";
+
         // 初回登録済ならホーム、未登録ならゴルフを背景にオンボーディング強制表示
         if (isProfileComplete()) {
           switchNav("home");

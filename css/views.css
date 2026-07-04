@@ -629,3 +629,527 @@
   }
 }
 
+
+/* =========================================================
+   ラウンド履歴ボタン (ホーム)
+   ========================================================= */
+.gl-hub__card--history .gl-hub__card__icon { color: #4A6CF7; }
+
+/* =========================================================
+   保存モーダル: プレビュー
+   ========================================================= */
+.gl-saveround__hint {
+  text-align: center;
+  font-size: 15px;
+  color: #4a4a4a;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+.gl-saveround__preview {
+  background: linear-gradient(135deg, #EAF7F0 0%, #F5FBF8 100%);
+  border: 2px solid #3BB774;
+  border-radius: 14px;
+  padding: 16px 14px;
+  margin: 8px 0 12px;
+  text-align: center;
+}
+.gl-saveround__course {
+  font-size: 15px;
+  color: #2C9C5E;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.gl-saveround__total {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 10px;
+  margin: 6px 0;
+}
+.gl-saveround__total__num {
+  font-size: 46px;
+  font-weight: 900;
+  color: #2b2b2b;
+  font-family: 'SF Mono', 'Menlo', monospace;
+  line-height: 1;
+}
+.gl-saveround__total__diff {
+  font-size: 20px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+.gl-saveround__total__diff.plus { background: #FEE; color: #E24A4A; }
+.gl-saveround__total__diff.minus { background: #E7F5FF; color: #1976D2; }
+.gl-saveround__total__diff.even { background: #EEE; color: #666; }
+.gl-saveround__oi {
+  font-size: 13px;
+  color: #6a6a6a;
+  margin-top: 6px;
+}
+
+/* =========================================================
+   ラウンド完了サマリー画面
+   ========================================================= */
+.gl-summary-result {
+  padding: 12px 14px 24px;
+}
+.gl-summary-result__title {
+  text-align: center;
+  font-size: 22px;
+  font-weight: 900;
+  color: #2C9C5E;
+  padding: 10px 0 6px;
+}
+.gl-summary-result__course {
+  text-align: center;
+  font-size: 17px;
+  font-weight: 800;
+  color: #2b2b2b;
+}
+.gl-summary-result__date {
+  text-align: center;
+  font-size: 13px;
+  color: #7a7a7a;
+  margin-bottom: 16px;
+}
+.gl-summary-result__score {
+  background: linear-gradient(135deg, #3BB774 0%, #2C9C5E 100%);
+  color: #fff;
+  border-radius: 18px;
+  padding: 24px 12px;
+  text-align: center;
+  margin: 4px 0 16px;
+  box-shadow: 0 6px 18px rgba(59,183,116,0.25);
+}
+.gl-summary-result__score__total {
+  font-size: 68px;
+  font-weight: 900;
+  font-family: 'SF Mono', 'Menlo', monospace;
+  line-height: 1;
+}
+.gl-summary-result__score__diff {
+  font-size: 22px;
+  font-weight: 800;
+  margin-top: 6px;
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.25);
+}
+.gl-summary-result__score__diff.is-plus { background: rgba(255,255,255,0.28); }
+.gl-summary-result__score__diff.is-even { background: rgba(255,255,255,0.22); }
+.gl-summary-result__score__diff.is-minus { background: rgba(255,255,255,0.35); color: #FFEB3B; }
+
+.gl-summary-result__oi {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.gl-summary-result__oi__cell {
+  background: #F6F8FA;
+  border: 1px solid #E6E8EB;
+  border-radius: 12px;
+  padding: 12px 4px;
+  text-align: center;
+}
+.gl-summary-result__oi__label {
+  font-size: 12px;
+  color: #7a7a7a;
+  font-weight: 700;
+}
+.gl-summary-result__oi__value {
+  font-size: 24px;
+  font-weight: 800;
+  color: #2b2b2b;
+  font-family: 'SF Mono', 'Menlo', monospace;
+  margin-top: 2px;
+}
+
+.gl-summary-result__holes__grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+  margin-bottom: 16px;
+}
+.gl-summary-result__hole {
+  background: #F6F8FA;
+  border: 1px solid #E6E8EB;
+  border-radius: 8px;
+  padding: 6px 2px;
+  text-align: center;
+}
+.gl-summary-result__hole.is-under { background: #E7F5FF; border-color: #90CAF9; }
+.gl-summary-result__hole.is-even { background: #F0F4F8; }
+.gl-summary-result__hole.is-over { background: #FFF3F3; border-color: #F5C6C6; }
+.gl-summary-result__hole__num {
+  font-size: 10px;
+  color: #7a7a7a;
+  font-weight: 700;
+}
+.gl-summary-result__hole__par {
+  font-size: 9px;
+  color: #9a9a9a;
+}
+.gl-summary-result__hole__strokes {
+  font-size: 18px;
+  font-weight: 800;
+  color: #2b2b2b;
+  font-family: 'SF Mono', 'Menlo', monospace;
+  margin-top: 2px;
+}
+
+.gl-summary-result__actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+.gl-summary-result__btn {
+  flex: 1;
+  min-height: 54px;
+  border-radius: 14px;
+  border: none;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: inherit;
+  transition: transform 0.08s;
+}
+.gl-summary-result__btn:active { transform: scale(0.97); }
+.gl-summary-result__btn--ghost {
+  background: #F0F2F5;
+  color: #4a4a4a;
+}
+.gl-summary-result__btn--primary {
+  background: linear-gradient(135deg, #3BB774 0%, #2C9C5E 100%);
+  color: #fff;
+}
+
+/* =========================================================
+   ラウンド履歴ページ
+   ========================================================= */
+.gl-history {
+  padding: 4px 14px 24px;
+}
+.gl-history__hero {
+  background: linear-gradient(135deg, #4A6CF7 0%, #3651C9 100%);
+  color: #fff;
+  border-radius: 16px;
+  padding: 18px 16px;
+  margin-bottom: 14px;
+  text-align: center;
+}
+.gl-history__hero__title {
+  font-size: 22px;
+  font-weight: 900;
+}
+.gl-history__hero__sub {
+  font-size: 12px;
+  opacity: 0.9;
+  margin-top: 4px;
+}
+
+.gl-history__stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.gl-history__stat {
+  background: #fff;
+  border: 1px solid #E6E8EB;
+  border-radius: 12px;
+  padding: 12px 4px;
+  text-align: center;
+}
+.gl-history__stat__label {
+  font-size: 11px;
+  color: #7a7a7a;
+  font-weight: 700;
+}
+.gl-history__stat__value {
+  font-size: 26px;
+  font-weight: 900;
+  color: #2b2b2b;
+  margin-top: 2px;
+  font-family: 'SF Mono', 'Menlo', monospace;
+}
+.gl-history__stat__value--best { color: #E24A4A; }
+.gl-history__stat__value--avg { color: #4A6CF7; }
+
+.gl-history__filters {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.gl-history__filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border: 1px solid #E6E8EB;
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+.gl-history__filter__label {
+  font-size: 12px;
+  color: #7a7a7a;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.gl-history__filter__select {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 700;
+  color: #2b2b2b;
+  font-family: inherit;
+  min-width: 0;
+}
+
+.gl-history__sort {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.gl-history__sort__btn {
+  background: #fff;
+  border: 1px solid #E6E8EB;
+  border-radius: 10px;
+  padding: 10px 6px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #6a6a6a;
+  cursor: pointer;
+  font-family: inherit;
+}
+.gl-history__sort__btn--active {
+  background: #4A6CF7;
+  color: #fff;
+  border-color: #4A6CF7;
+}
+
+.gl-history__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.gl-history__empty {
+  text-align: center;
+  color: #9a9a9a;
+  padding: 40px 0;
+  font-size: 14px;
+}
+.gl-history__card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid #E6E8EB;
+  border-radius: 14px;
+  padding: 12px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: transform 0.08s;
+}
+.gl-history__card:active { transform: scale(0.98); background: #F6F8FA; }
+.gl-history__card__score {
+  background: linear-gradient(135deg, #4A6CF7 0%, #3651C9 100%);
+  color: #fff;
+  border-radius: 12px;
+  padding: 12px 10px;
+  min-width: 68px;
+  text-align: center;
+}
+.gl-history__card__total {
+  font-size: 26px;
+  font-weight: 900;
+  line-height: 1;
+  font-family: 'SF Mono', 'Menlo', monospace;
+}
+.gl-history__card__diff {
+  font-size: 11px;
+  margin-top: 2px;
+  font-weight: 700;
+}
+.gl-history__card__diff.is-plus { color: #FFEB3B; }
+.gl-history__card__diff.is-minus { color: #B2F5EA; }
+.gl-history__card__diff.is-even { opacity: 0.85; }
+.gl-history__card__body {
+  flex: 1;
+  min-width: 0;
+}
+.gl-history__card__date {
+  font-size: 12px;
+  color: #7a7a7a;
+  font-weight: 700;
+}
+.gl-history__card__course {
+  font-size: 15px;
+  font-weight: 800;
+  color: #2b2b2b;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gl-history__card__meta {
+  font-size: 11px;
+  color: #9a9a9a;
+  margin-top: 2px;
+}
+.gl-history__card__chev {
+  color: #9a9a9a;
+  font-size: 22px;
+  font-weight: 300;
+}
+
+/* =========================================================
+   ラウンド詳細ページ
+   ========================================================= */
+.gl-history-detail {
+  padding: 4px 14px 24px;
+}
+.gl-history-detail__topbar {
+  padding: 6px 0 8px;
+}
+.gl-history-detail__back {
+  background: transparent;
+  border: none;
+  color: #4A6CF7;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 4px 0;
+}
+.gl-history-detail__hero {
+  background: linear-gradient(135deg, #4A6CF7 0%, #3651C9 100%);
+  color: #fff;
+  border-radius: 16px;
+  padding: 18px 16px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+.gl-history-detail__course {
+  font-size: 18px;
+  font-weight: 900;
+}
+.gl-history-detail__date {
+  font-size: 12px;
+  opacity: 0.9;
+  margin-top: 2px;
+}
+.gl-history-detail__score {
+  margin-top: 10px;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 10px;
+}
+.gl-history-detail__total {
+  font-size: 48px;
+  font-weight: 900;
+  font-family: 'SF Mono', 'Menlo', monospace;
+  line-height: 1;
+}
+.gl-history-detail__diff {
+  font-size: 20px;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.25);
+}
+.gl-history-detail__diff.is-minus { color: #FFEB3B; }
+.gl-history-detail__meta {
+  font-size: 12px;
+  opacity: 0.9;
+  margin-top: 8px;
+}
+
+.gl-history-detail__mode {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+  background: #F0F2F5;
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 12px;
+}
+.gl-history-detail__mode__btn {
+  background: transparent;
+  border: none;
+  padding: 10px 4px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #6a6a6a;
+  cursor: pointer;
+  font-family: inherit;
+}
+.gl-history-detail__mode__btn--active {
+  background: #fff;
+  color: #4A6CF7;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.gl-history-detail__table {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 14px;
+  background: #fff;
+  border: 1px solid #E6E8EB;
+  border-radius: 12px;
+  padding: 8px;
+}
+.gl-rdt__table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 8px;
+}
+.gl-rdt__table:last-child { margin-bottom: 0; }
+.gl-rdt__table th, .gl-rdt__table td {
+  padding: 6px 4px;
+  text-align: center;
+  font-size: 13px;
+  font-family: 'SF Mono', 'Menlo', monospace;
+  border-bottom: 1px solid #F0F2F5;
+}
+.gl-rdt__table thead th {
+  background: #4A6CF7;
+  color: #fff;
+  font-weight: 800;
+  font-size: 12px;
+}
+.gl-rdt__table thead th:first-child { border-radius: 6px 0 0 6px; text-align: left; padding-left: 8px; }
+.gl-rdt__table thead th:last-child { border-radius: 0 6px 6px 0; }
+.gl-rdt__label { text-align: left; padding-left: 8px !important; color: #7a7a7a; font-weight: 700; }
+.gl-rdt__label--score { color: #2b2b2b; background: #E7F5FF; }
+.gl-rdt__score { background: #E7F5FF; font-weight: 700; color: #2b2b2b; }
+.gl-rdt__sum { background: #FFECB3; font-weight: 800; }
+.gl-rdt__sum--score { background: #FFECB3; color: #B34747; }
+.gl-rdt__diff { font-size: 10px; color: #7a7a7a; margin-left: 2px; }
+
+.gl-history-detail__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.gl-history-detail__btn {
+  min-height: 52px;
+  border-radius: 12px;
+  border: none;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: inherit;
+  transition: transform 0.08s;
+}
+.gl-history-detail__btn:active { transform: scale(0.97); }
+.gl-history-detail__btn--line { background: #06C755; color: #fff; }
+.gl-history-detail__btn--delete { background: #FFECEC; color: #C62828; border: 1px solid #F5C6C6; }
