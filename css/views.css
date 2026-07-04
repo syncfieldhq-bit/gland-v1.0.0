@@ -586,6 +586,12 @@
     display: none !important;
   }
 
+  /* ★ 横画面では現在ホールのハイライト（オレンジ枠）を完全に消す */
+  #view-golf-score .gl-col-current {
+    outline: none !important;
+    background: transparent !important;
+  }
+
   /* スコアテーブル: 画面フル活用 */
   #view-golf-score .gl-scoretable--compact,
   #view-golf-score .gl-scoretable--wide {
