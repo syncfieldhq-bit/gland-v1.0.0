@@ -103,4 +103,76 @@
   window.glandApi = api;
   window.gwApi    = api;  // v85 互換
   window.glandApiIsConfigured = isConfigured;
+
+  /* ============================================================
+   *  プロフィール同期ヘルパー
+   * ------------------------------------------------------------
+   *  g-land のプロフィール構造 { nickname, lastName, lastNameKana,
+   *  firstName, firstNameKana } を v85 の形式に変換して送信する。
+   *  返ってきた userId を localStorage に保存する。
+   * ============================================================ */
+  var USER_ID_KEY = 'gl_user_id_v1';
+
+  function getStoredUserId() {
+    try { return localStorage.getItem(USER_ID_KEY) || ''; } catch (e) { return ''; }
+  }
+
+  function setStoredUserId(id) {
+    try { if (id) localStorage.setItem(USER_ID_KEY, id); } catch (e) {}
+  }
+
+  // g-land profile → v85 payload に変換
+  function toV85Payload(profile) {
+    var p = profile || {};
+    return {
+      nickname:   p.nickname || '',
+      familyName: p.lastName || '',
+      familyKana: p.lastNameKana || '',
+      firstName:  p.firstName || ' ',       // v85 必須なので空なら半角スペース
+      firstKana:  p.firstNameKana || ' '    // 同上
+    };
+  }
+
+  /**
+   * プロフィールを GAS に同期する。
+   * 新規なら apiRegisterUser、既存 userId があれば apiUpdateUser。
+   * 成功時: { ok:true, userId, user }
+   * 失敗時: { ok:false, error, _offline? }
+   */
+  function syncProfileToServer(profile) {
+    if (!isConfigured()) {
+      return Promise.resolve({ ok: false, error: 'not configured', _offline: true });
+    }
+    var payload = toV85Payload(profile);
+    var existingId = getStoredUserId();
+    if (existingId) {
+      // 既存ユーザー → 更新
+      return api('apiUpdateUser', { userId: existingId, patch: payload }).then(function (r) {
+        if (r && r.ok) {
+          return { ok: true, userId: existingId, user: r.user || null, updated: true };
+        }
+        // 更新失敗（サーバー側で当該ユーザー消失など）→ 新規登録にフォールバック
+        return api('apiRegisterUser', payload).then(function (r2) {
+          if (r2 && r2.ok && r2.user && r2.user.userId) {
+            setStoredUserId(r2.user.userId);
+            return { ok: true, userId: r2.user.userId, user: r2.user, created: true };
+          }
+          return { ok: false, error: (r2 && r2.error) || 'register failed' };
+        });
+      });
+    }
+    // 新規登録
+    return api('apiRegisterUser', payload).then(function (r) {
+      if (r && r.ok && r.user && r.user.userId) {
+        setStoredUserId(r.user.userId);
+        return { ok: true, userId: r.user.userId, user: r.user, created: true };
+      }
+      return { ok: false, error: (r && r.error) || 'register failed' };
+    });
+  }
+
+  // グローバル公開
+  window.glandSyncProfile   = syncProfileToServer;
+  window.glandGetUserId     = getStoredUserId;
+  window.glandSetUserId     = setStoredUserId;
 })();

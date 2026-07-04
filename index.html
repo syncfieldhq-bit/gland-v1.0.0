@@ -1391,12 +1391,25 @@
           }
         } catch (e) { /* ignore */ }
       }
-      function saveProfile() {
+            function saveProfile() {
         try {
           if (typeof localStorage === "undefined") return;
           localStorage.setItem(PROFILE_KEY, JSON.stringify(state.profile));
         } catch (e) { /* ignore */ }
+        // v2.1: プロフィールを GAS に非同期同期（失敗してもローカルは保存済みなので影響なし）
+        if (typeof window.glandSyncProfile === 'function') {
+          window.glandSyncProfile(state.profile).then(function (r) {
+            if (r && r.ok) {
+              console.log('[GL] profile synced', r.userId, r.created ? '(created)' : '(updated)');
+            } else if (r && !r._offline) {
+              console.warn('[GL] profile sync failed:', r.error);
+            }
+          }).catch(function (e) {
+            console.warn('[GL] profile sync exception:', e);
+          });
+        }
       }
+
       function isProfileComplete() {
         var p = state.profile;
         return !!(p.nickname && p.lastName && p.lastNameKana);
