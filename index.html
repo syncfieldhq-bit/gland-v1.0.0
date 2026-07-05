@@ -1370,7 +1370,10 @@
             return;
           }
           applyMembersToState(members);
-          renderAll();
+          // スコアカード画面を表示中のときだけ再描画（ホーム画面等に混入しないよう）
+          if (state.currentNav === "golf" && state.golfSubView === "score") {
+            renderAll();
+          }
           console.log("[GL] members refreshed:", members.length);
         }).catch(function (e) {
           console.warn("[GL] apiListRoundMembers exception:", e);
