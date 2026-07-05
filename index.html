@@ -1481,7 +1481,18 @@
             console.warn("[GL] apiListScores failed:", r && r.error);
             return;
           }
-          var scores = (r.data && (r.data.scores || r.data.playerScores)) || r.scores || r.playerScores || [];
+                    // v85 GAS は「playerScores」を返す（「scores」は常に空配列）
+          // 空配列は truthy なので、length で判定して確実に playerScores へフォールバック
+          var scores = [];
+          if (r.data) {
+            if (r.data.playerScores && r.data.playerScores.length) scores = r.data.playerScores;
+            else if (r.data.scores && r.data.scores.length) scores = r.data.scores;
+          }
+          if (!scores.length) {
+            if (r.playerScores && r.playerScores.length) scores = r.playerScores;
+            else if (r.scores && r.scores.length) scores = r.scores;
+          }
+
           applyPeerScoresToState(scores);
           if (state.currentTab === "summary" && state.currentNav === "golf" && state.golfSubView === "score") {
             renderSummaryTable();
