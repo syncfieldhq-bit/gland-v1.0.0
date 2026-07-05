@@ -944,19 +944,22 @@
           }
         }
         on(byId("ob-submit"), function () {
-          var nick = (byId("ob-nickname").value || "").trim();
-          var ln = (byId("ob-lastname").value || "").trim();
-          var lnk = (byId("ob-lastnamekana").value || "").trim();
-          if (!nick || !ln || !lnk) return;
-          state.profile.nickname = nick;
-          state.profile.lastName = ln;
-          state.profile.lastNameKana = lnk;
-          saveProfile();
-          renderProfile();
-          renderHome();
-          closeOnboarding();
-          switchNav("home");
-        });
+  var nick = (byId("ob-nickname").value || "").trim();
+  var ln = (byId("ob-lastname").value || "").trim();
+  var lnk = (byId("ob-lastnamekana").value || "").trim();
+  if (!nick || !ln || !lnk) return;
+  state.profile.nickname = nick;
+  state.profile.lastName = ln;
+  state.profile.lastNameKana = lnk;
+  saveProfile();
+  renderProfile();
+  renderHome();
+  closeOnboarding();
+  switchNav("home");
+  // Phase 4: 合流待ちがあれば実行（saveProfile内でuserId発行 → apiJoinRound）
+  setTimeout(tryJoinPendingRound, 800);
+});
+
 
         on(byId("pf-save"), function () {
           var nick = (byId("pf-nickname").value || "").trim();
@@ -1462,8 +1465,61 @@
         if (el) el.style.display = "none";
       }
       function checkOnboarding() {
-        if (!isProfileComplete()) openOnboarding();
-      }
+  // Phase 4: URL の ?join= を検出して state に保存
+  try {
+    var params = new URLSearchParams(location.search);
+    var joinId = params.get("join");
+    if (joinId) {
+      state.pendingJoinRoundId = joinId;
+      console.log("[GL] pending join round:", joinId);
+    }
+  } catch (e) { /* ignore */ }
+  
+  if (!isProfileComplete()) {
+    openOnboarding();
+    // 登録完了後に ob-submit のハンドラ内で tryJoinPendingRound が呼ばれる
+  } else if (state.pendingJoinRoundId) {
+    // プロフィール登録済み + 合流待ち → 即実行
+    tryJoinPendingRound();
+  }
+}
+// Phase 4: 合流待ちラウンドがあれば apiJoinRound を呼ぶ
+function tryJoinPendingRound() {
+  if (!state.pendingJoinRoundId) return;
+  if (typeof window.glandApi !== "function") return;
+  if (typeof window.glandApiIsConfigured !== "function" || !window.glandApiIsConfigured()) return;
+  
+  var joinRoundId = state.pendingJoinRoundId;
+  var userId = (typeof window.glandGetUserId === "function") ? window.glandGetUserId() : "";
+  
+  if (!userId) {
+    console.warn("[GL] joinRound skipped: no userId");
+    return;
+  }
+  
+  window.glandApi("apiJoinRound", {
+    roundId: joinRoundId,
+    userId: userId
+  }).then(function (r) {
+    var joined = r && ((r.data && r.data.roundId) || r.roundId);
+    if (r && r.ok && joined) {
+      state.roundId = joined;
+      state.pendingJoinRoundId = "";
+      try { localStorage.setItem("gl_round_id_v1", joined); } catch (e) {}
+      console.log("[GL] joined round:", joined);
+      alert("ラウンドに合流しました！");
+      if (typeof showGolfSub === "function") showGolfSub("score");
+    } else {
+      console.warn("[GL] apiJoinRound failed:", r && (r.error || "unknown"));
+      alert("ラウンドへの合流に失敗しました。ラウンドIDを確認してください。");
+      state.pendingJoinRoundId = "";
+    }
+  }).catch(function (e) {
+    console.warn("[GL] apiJoinRound exception:", e);
+    alert("通信エラー: ラウンドに合流できませんでした。");
+  });
+}
+
 
       // ================================================
       // ラウンドの自動保存・履歴保存・日付リセット
