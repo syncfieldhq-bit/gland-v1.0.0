@@ -1465,7 +1465,15 @@
         if (el) el.style.display = "none";
       }
       function checkOnboarding() {
-  // Phase 4: URL の ?join= を検出して state に保存
+  if (!isProfileComplete()) {
+    openOnboarding();
+  } else if (state.pendingJoinRoundId) {
+    tryJoinPendingRound();
+  }
+}
+
+// Phase 4: URL の ?join= を検出（アプリ起動時に必ず実行）
+(function detectJoinParamOnLoad() {
   try {
     var params = new URLSearchParams(location.search);
     var joinId = params.get("join");
@@ -1474,15 +1482,8 @@
       console.log("[GL] pending join round:", joinId);
     }
   } catch (e) { /* ignore */ }
-  
-  if (!isProfileComplete()) {
-    openOnboarding();
-    // 登録完了後に ob-submit のハンドラ内で tryJoinPendingRound が呼ばれる
-  } else if (state.pendingJoinRoundId) {
-    // プロフィール登録済み + 合流待ち → 即実行
-    tryJoinPendingRound();
-  }
-}
+})();
+
 // Phase 4: 合流待ちラウンドがあれば apiJoinRound を呼ぶ
 function tryJoinPendingRound() {
   if (!state.pendingJoinRoundId) return;
