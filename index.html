@@ -1523,9 +1523,10 @@ function tryJoinPendingRound() {
   }
   
   window.glandApi("apiJoinRound", {
-    roundId: joinRoundId,
-    userId: userId
-  }).then(function (r) {
+  joinId: joinRoundId,
+  userId: userId
+}).then(function (r) {
+
     var joined = r && ((r.data && r.data.roundId) || r.roundId);
     if (r && r.ok && joined) {
       state.roundId = joined;
