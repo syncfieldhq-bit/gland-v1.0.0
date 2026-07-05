@@ -651,8 +651,10 @@
               renderInputTable();
               renderInputPanel();
             },
-            onCommit: function () {
+             onCommit: function () {
               state.lastUpdate = timeNow();
+              // Phase 5 STEP C: 確定したホールのスコアをサーバへ送信
+              savePlayerScoreToServer(h);
               var max = getMaxHole();
               var justCompleted18 = false;
               // ロジック:
@@ -1348,6 +1350,7 @@
         // Phase 5 STEP A: スコアカード表示時にメンバー一覧を取得
         if (sub === "score") {
           refreshRoundMembers();
+          startPeerPolling();          // ← ★ この1行を追加 ★
         }
       }
 
@@ -1426,6 +1429,97 @@
         state.players = newPlayers;
         state.selfIdx = 0;
       }
+
+      // ================================================
+      // Phase 5 STEP C: 自分のスコアをサーバに送信
+      // ================================================
+      function savePlayerScoreToServer(hole) {
+        if (typeof window.glandApi !== "function") return;
+        if (typeof window.glandApiIsConfigured !== "function" || !window.glandApiIsConfigured()) return;
+        if (!state.roundId) return;
+        if (!hole) return;
+        var userId = (typeof window.glandGetUserId === "function") ? window.glandGetUserId() : "";
+        if (!userId) return;
+        var payload = {
+          roundId: state.roundId,
+          userId: userId,
+          holeNo: hole.holeNumber,
+          par: hole.par,
+          stroke: hole.strokes,
+          putt: hole.putts
+        };
+        window.glandApi("apiSavePlayerScore", payload).then(function (r) {
+          if (r && r.ok) {
+            console.log("[GL] score saved: H" + hole.holeNumber, "stroke=" + hole.strokes, "putt=" + hole.putts);
+          } else {
+            console.warn("[GL] apiSavePlayerScore failed:", r && (r.error || "unknown"));
+          }
+        }).catch(function (e) {
+          console.warn("[GL] apiSavePlayerScore exception:", e);
+        });
+      }
+
+      // ================================================
+      // Phase 5 STEP B: 他人のスコアを25秒毎にポーリング取得
+      // ================================================
+      var PEER_POLL_MS = 25000;
+      var peerPollTimer = null;
+
+      function startPeerPolling() {
+        if (peerPollTimer) return;
+        console.log("[GL] peer polling started (interval=" + PEER_POLL_MS + "ms)");
+        fetchPeerScores();
+        peerPollTimer = setInterval(fetchPeerScores, PEER_POLL_MS);
+      }
+
+      function fetchPeerScores() {
+        if (typeof window.glandApi !== "function") return;
+        if (typeof window.glandApiIsConfigured !== "function" || !window.glandApiIsConfigured()) return;
+        if (!state.roundId) return;
+        window.glandApi("apiListScores", { roundId: state.roundId }).then(function (r) {
+          if (!r || !r.ok) {
+            console.warn("[GL] apiListScores failed:", r && r.error);
+            return;
+          }
+          var scores = (r.data && (r.data.scores || r.data.playerScores)) || r.scores || r.playerScores || [];
+          applyPeerScoresToState(scores);
+          if (state.currentTab === "summary" && state.currentNav === "golf" && state.golfSubView === "score") {
+            renderSummaryTable();
+          }
+          console.log("[GL] peer scores refreshed:", scores.length);
+        }).catch(function (e) {
+          console.warn("[GL] apiListScores exception:", e);
+        });
+      }
+
+      function applyPeerScoresToState(scores) {
+        if (!scores || !scores.length) return;
+        var myUserId = (typeof window.glandGetUserId === "function") ? window.glandGetUserId() : "";
+        for (var i = 0; i < scores.length; i++) {
+          var s = scores[i];
+          if (!s || !s.userId) continue;
+          if (s.userId === myUserId) continue;
+          var player = null;
+          for (var j = 0; j < state.players.length; j++) {
+            if (state.players[j].userId === s.userId) {
+              player = state.players[j];
+              break;
+            }
+          }
+          if (!player || !player.holes) continue;
+          var holeNo = s.holeNo || s.hole || 0;
+          for (var k = 0; k < player.holes.length; k++) {
+            if (player.holes[k].holeNumber === holeNo) {
+              var st = (s.stroke != null) ? s.stroke : s.strokes;
+              var pt = (s.putt != null) ? s.putt : s.putts;
+              if (st != null) player.holes[k].strokes = st;
+              if (pt != null) player.holes[k].putts = pt;
+              break;
+            }
+          }
+        }
+      }
+
 
       function showView(id, visible) {
         var el = byId(id);
