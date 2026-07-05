@@ -885,13 +885,16 @@
               ownerUserId: userId,
               hostName: (state.profile && state.profile.nickname) || ""
             }).then(function (r) {
-              if (r && r.ok && r.data && r.data.roundId) {
-                state.roundId = r.data.roundId;
-                try { localStorage.setItem("gl_round_id_v1", r.data.roundId); } catch (e) {}
-                console.log("[GL] round created:", r.data.roundId);
-              } else {
-                console.warn("[GL] apiStartRound failed:", r && r.error);
-              }
+  // r.data.roundId (新形式) と r.roundId (v85形式) の両方に対応
+  var newRoundId = r && ((r.data && r.data.roundId) || r.roundId);
+  if (r && r.ok && newRoundId) {
+    state.roundId = newRoundId;
+    try { localStorage.setItem("gl_round_id_v1", newRoundId); } catch (e) {}
+    console.log("[GL] round created:", newRoundId);
+  } else {
+    console.warn("[GL] apiStartRound failed:", r && (r.error || "unknown"));
+  }
+
             }).catch(function (e) {
               console.warn("[GL] apiStartRound exception:", e);
             });
