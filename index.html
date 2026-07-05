@@ -1614,13 +1614,12 @@ function tryJoinPendingRound() {
       try { localStorage.setItem("gl_round_id_v1", joined); } catch (e) {}
       console.log("[GL] joined round:", joined);
       alert("ラウンドに合流しました！");
-      // 合流成功時: メンバー情報を裏で取得。
-      // 画面はホームのまま (view-golf-score を絶対に表示しない)
-      var gs = document.getElementById("view-golf-score");
-      if (gs) gs.style.display = "none";
-      var gm = document.getElementById("view-golf-menu");
-      if (gm) gm.style.display = "none";
-      state.golfSubView = "menu";
+      // 合流成功後は、スコアカード画面へ自動遷移する
+      // (switchNav が全ビューをクリーンにしてから golf-score を表示するので張り付きは起きない)
+      state.golfSubView = "score";
+      if (typeof switchNav === "function") {
+        switchNav("golf");
+      }
       if (typeof refreshRoundMembers === "function") refreshRoundMembers();
 
     } else {
