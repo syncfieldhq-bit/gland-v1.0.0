@@ -1059,17 +1059,20 @@
         });
 
         // ラウンド保存モーダル
-        on(byId("save-round-ok"), function () {
+                on(byId("save-round-ok"), function () {
           var saved = saveRoundToHistory();
           closeModal("save-round");
           if (saved) {
             state.lastSavedRound = saved;
+            // 保存成功 → 現在ラウンドをクリア (スコアカード白紙化)
+            clearCurrentRoundAfterSave();
             showViewOnly("view-summary-result");
             renderSummaryResult(saved);
           } else {
             alert("保存に失敗しました");
           }
         });
+
       }
 
       // ====== ナビゲーション・ビュー制御 ======
@@ -1885,6 +1888,43 @@ function tryJoinPendingRound() {
           return round;
         } catch (e) { return null; }
       }
+
+      // 保存完了後に現在ラウンド状態をクリア（次のラウンドに備える）
+      function clearCurrentRoundAfterSave() {
+        try {
+          // localStorage の入力途中データを削除
+          if (typeof localStorage !== "undefined") {
+            localStorage.removeItem(CURRENT_ROUND_KEY);
+            localStorage.removeItem("gl_round_id_v1");  // ラウンドIDも
+          }
+          // state のスコアを白紙化
+          if (state.players && state.players[0]) {
+            state.players[0].holes = cloneHoles(HOLES);
+          }
+          // 他人のスコアもクリア（今後は新ラウンドなので）
+          for (var i = 1; i < (state.players || []).length; i++) {
+            state.players[i].holes = cloneHoles(HOLES);
+          }
+          // ラウンド関連 state を初期化
+          state.roundId = "";
+          state.currentHole = 1;
+          state.workingHole = 1;
+          state.startTime = null;
+          state.startTimeSetByUser = false;
+          state.lockerNumber = null;
+          state.lastUpdate = null;
+          // ポーリング停止
+          if (typeof peerPollTimer !== "undefined" && peerPollTimer) {
+            clearInterval(peerPollTimer);
+            peerPollTimer = null;
+            console.log("[GL] peer polling stopped (round finished)");
+          }
+        } catch (e) {
+          console.warn("[GL] clearCurrentRoundAfterSave error:", e);
+        }
+      }
+
+
 
       function getHistory() {
         try {
