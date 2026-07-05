@@ -879,20 +879,20 @@
         bindSegment("gm-rounds", function (v) { state.rounds = v; });
 
         // ラウンド開始・スコアカード
-        on(byId("gm-start"), function () {
-          // Phase 3: サーバに新ラウンドを作成
+               on(byId("gm-start"), function () {
           if (typeof window.glandApi === "function" && typeof window.glandApiIsConfigured === "function" && window.glandApiIsConfigured()) {
             var userId = (typeof window.glandGetUserId === "function") ? window.glandGetUserId() : "";
             window.glandApi("apiStartRound", {
               ownerUserId: userId,
               hostName: (state.profile && state.profile.nickname) || ""
             }).then(function (r) {
-  // r.data.roundId (新形式) と r.roundId (v85形式) の両方に対応
   var newRoundId = r && ((r.data && r.data.roundId) || r.roundId);
   if (r && r.ok && newRoundId) {
     state.roundId = newRoundId;
     try { localStorage.setItem("gl_round_id_v1", newRoundId); } catch (e) {}
     console.log("[GL] round created:", newRoundId);
+    // ★ ラウンド作成成功後、メンバー一覧を再取得（ホスト自身が並ぶ）
+    if (typeof refreshRoundMembers === "function") refreshRoundMembers();
   } else {
     console.warn("[GL] apiStartRound failed:", r && (r.error || "unknown"));
   }
@@ -903,6 +903,7 @@
           }
           showGolfSub("score");
         });
+
         on(byId("gm-scorecard"), function () { showGolfSub("score"); });
 
 
@@ -1479,6 +1480,7 @@
         if (typeof window.glandApi !== "function") return;
         if (typeof window.glandApiIsConfigured !== "function" || !window.glandApiIsConfigured()) return;
         if (!state.roundId) return;
+        if (typeof refreshRoundMembers === "function") refreshRoundMembers(); 
         window.glandApi("apiListScores", { roundId: state.roundId }).then(function (r) {
           if (!r || !r.ok) {
             console.warn("[GL] apiListScores failed:", r && r.error);
