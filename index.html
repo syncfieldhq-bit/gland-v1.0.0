@@ -1341,10 +1341,87 @@
         if (nav === "home") renderHome();
       }
 
-      function showGolfSub(sub) {
+            function showGolfSub(sub) {
         state.golfSubView = sub;
         showView("view-golf-menu", sub === "menu");
         showView("view-golf-score", sub === "score");
+        // Phase 5 STEP A: スコアカード表示時にメンバー一覧を取得
+        if (sub === "score") {
+          refreshRoundMembers();
+        }
+      }
+
+      // ================================================
+      // Phase 5 STEP A: ラウンドのメンバー一覧を取得して
+      // state.players に反映する
+      // ================================================
+      function refreshRoundMembers() {
+        if (typeof window.glandApi !== "function") return;
+        if (typeof window.glandApiIsConfigured !== "function" || !window.glandApiIsConfigured()) return;
+        var rid = state.roundId || "";
+        if (!rid) {
+          console.log("[GL] refreshRoundMembers skipped: no roundId");
+          return;
+        }
+        window.glandApi("apiListRoundMembers", { roundId: rid }).then(function (r) {
+          var members = r && ((r.data && r.data.members) || r.members);
+          if (!r || !r.ok || !members || !members.length) {
+            console.warn("[GL] apiListRoundMembers empty:", r && r.error);
+            return;
+          }
+          applyMembersToState(members);
+          renderAll();
+          console.log("[GL] members refreshed:", members.length);
+        }).catch(function (e) {
+          console.warn("[GL] apiListRoundMembers exception:", e);
+        });
+      }
+
+      // members配列を state.players に反映
+      // - 自分(userId一致)を先頭
+      // - 他メンバーは joinedAt 昇順
+      // - 自分の holes(スコア)は既存のものを保持
+      // - 他メンバーの holes は新規生成(白紙)
+      function applyMembersToState(members) {
+        var myUserId = (typeof window.glandGetUserId === "function") ? window.glandGetUserId() : "";
+        var displayName = function (m) {
+          return m.familyName || m.nickname || "?";
+        };
+        // 自分と他人に分ける
+        var me = null;
+        var others = [];
+        for (var i = 0; i < members.length; i++) {
+          var m = members[i];
+          if (m.userId && m.userId === myUserId) me = m;
+          else others.push(m);
+        }
+        // 他人は joinedAt 昇順
+        others.sort(function (a, b) {
+          return (a.joinedAt || 0) - (b.joinedAt || 0);
+        });
+        // 既存 players[0](自分)の holes を退避
+        var myHoles = (state.players && state.players[0] && state.players[0].holes) || cloneHoles(HOLES);
+        // 新しい players 配列を組み立て
+        var newPlayers = [];
+        // 先頭: 自分
+        newPlayers.push({
+          userId: myUserId,
+          name: (state.profile && state.profile.lastName) || (me && displayName(me)) || "あなた",
+          isSelf: true,
+          holes: myHoles
+        });
+        // 他メンバー
+        for (var j = 0; j < others.length; j++) {
+          var o = others[j];
+          newPlayers.push({
+            userId: o.userId || "",
+            name: displayName(o),
+            isSelf: false,
+            holes: cloneHoles(HOLES)
+          });
+        }
+        state.players = newPlayers;
+        state.selfIdx = 0;
       }
 
       function showView(id, visible) {
@@ -1535,6 +1612,7 @@ function tryJoinPendingRound() {
       console.log("[GL] joined round:", joined);
       alert("ラウンドに合流しました！");
       if (typeof showGolfSub === "function") showGolfSub("score");
+      if (typeof refreshRoundMembers === "function") refreshRoundMembers();
     } else {
       console.warn("[GL] apiJoinRound failed:", r && (r.error || "unknown"));
       alert("ラウンドへの合流に失敗しました。ラウンドIDを確認してください。");
