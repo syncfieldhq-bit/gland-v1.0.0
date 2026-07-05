@@ -957,7 +957,7 @@
   closeOnboarding();
   switchNav("home");
   // Phase 4: 合流待ちがあれば実行（saveProfile内でuserId発行 → apiJoinRound）
-  setTimeout(tryJoinPendingRound, 800);
+      waitForUserIdAndJoin();
 });
 
 
@@ -1483,6 +1483,30 @@
     }
   } catch (e) { /* ignore */ }
 })();
+// Phase 4: userId が発行されるまで待って合流を試みる（登録直後・起動時 両対応）
+function waitForUserIdAndJoin(attempts) {
+  if (attempts === undefined) attempts = 20;
+  if (attempts <= 0) return;
+  if (!state.pendingJoinRoundId) return;
+  
+  var userId = (typeof window.glandGetUserId === "function") ? window.glandGetUserId() : "";
+  if (!userId) {
+    setTimeout(function () { waitForUserIdAndJoin(attempts - 1); }, 300);
+    return;
+  }
+  tryJoinPendingRound();
+}
+
+// Phase 4: 起動時に既に登録済み+合流待ちがあれば即合流
+(function autoJoinOnLoad() {
+  setTimeout(function () {
+    if (typeof state === "undefined") return;
+    if (!state.pendingJoinRoundId) return;
+    if (typeof isProfileComplete !== "function" || !isProfileComplete()) return;
+    waitForUserIdAndJoin();
+  }, 500);
+})();
+
 
 // Phase 4: 合流待ちラウンドがあれば apiJoinRound を呼ぶ
 function tryJoinPendingRound() {
