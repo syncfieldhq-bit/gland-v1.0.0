@@ -882,7 +882,7 @@
           if (typeof window.glandApi === "function" && typeof window.glandApiIsConfigured === "function" && window.glandApiIsConfigured()) {
             var userId = (typeof window.glandGetUserId === "function") ? window.glandGetUserId() : "";
             window.glandApi("apiStartRound", {
-              userId: userId,
+              ownerUserId: userId,
               hostName: (state.profile && state.profile.nickname) || ""
             }).then(function (r) {
               if (r && r.ok && r.data && r.data.roundId) {
