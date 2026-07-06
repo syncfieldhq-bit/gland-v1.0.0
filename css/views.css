@@ -592,11 +592,12 @@
     background: transparent !important;
   }
 
-  /* スコアテーブル: 画面フル活用 */
+    /* スコアテーブル: 画面フル活用（4人+9H+OUT+TOTAL 収まるよう自動調整・老眼配慮の大きい数字） */
   #view-golf-score .gl-scoretable--compact,
   #view-golf-score .gl-scoretable--wide {
-    --gl-hole-w: 68px !important;
-    --gl-summary-w: 50px !important;
+    /* ホール列は画面幅に応じて自動調整（最小 46px、理想 8vw、最大 68px） */
+    --gl-hole-w: clamp(46px, 8vw, 68px) !important;
+    --gl-summary-w: 48px !important;
   }
   #view-golf-score .gl-scoretable__wrap {
     flex: 1 1 auto;
@@ -618,33 +619,33 @@
   /* ヘッダー（H）: 控えめ */
   #view-golf-score .gl-scoretable__table thead th {
     font-size: 12px;
-    padding: 3px 2px;
-    height: 24px;
+    padding: 2px 1px;
+    height: 22px;
     line-height: 1.1;
   }
-  /* PAR行: 控えめ */
+  /* PAR行: 少し大きめ（老眼配慮） */
   #view-golf-score .gl-scoretable__table tr.gl-row-par td,
   #view-golf-score .gl-scoretable__table tr.gl-row-par th {
-    font-size: 15px;
+    font-size: 17px;
     padding: 3px 2px;
-    height: 28px;
+    height: 26px;
   }
-  /* ★ プレイヤー行のスコア数字: 大きく（老眼対応） */
+  /* ★ プレイヤー行のスコア数字: 大きく（老眼対応、26px → 32px に拡大） */
   #view-golf-score .gl-scoretable__table tbody tr:not(.gl-row-par) td {
     padding: 4px 2px;
-    font-size: 26px;
+    font-size: 32px;
     font-weight: 800;
     line-height: 1;
   }
-  /* プレイヤー名列 */
+  /* プレイヤー名列（少し狭くして 9H 全表示） */
   #view-golf-score .gl-col-name {
-    min-width: 84px !important;
-    max-width: 92px !important;
-    font-size: 15px !important;
+    min-width: 72px !important;
+    max-width: 80px !important;
+    font-size: 14px !important;
   }
-  /* TOTAL列 */
+  /* TOTAL列（少し狭く） */
   #view-golf-score .gl-col-total {
-    min-width: 64px !important;
+    min-width: 56px !important;
     font-size: 22px !important;
   }
   /* 「自分」タグはコンパクト */
@@ -653,7 +654,7 @@
     padding: 1px 6px;
     margin: 2px auto 0;
   }
-}
+
 
 
 /* =========================================================
@@ -1280,3 +1281,4 @@
   line-height: 1.1;
 }
 
+} 
