@@ -1280,3 +1280,52 @@
   line-height: 1.1;
 }
 
+
+/* ============================================================
+   Task F-fix: スコアテーブル縦幅圧縮 (確定ボタン浮上のため)
+   老眼対応の文字サイズは維持、余白のみ削減
+============================================================ */
+#view-golf-score .gl-scoretable__table thead th{
+  padding: 2px 2px !important;
+  height: 22px !important;
+  font-size: 12px !important;
+  line-height: 1.1 !important;
+}
+
+/* PAR行: 縦幅を少し圧縮 */
+#view-golf-score .gl-scoretable__table tr.gl-row-par td,
+#view-golf-score .gl-scoretable__table tr.gl-row-par th{
+  padding: 3px 2px !important;
+  height: 26px !important;
+  font-size: 16px !important;
+  line-height: 1.15 !important;
+}
+
+/* 選手ストローク行: paddingのみ削減、文字サイズは維持（老眼対応） */
+#view-golf-score .gl-scoretable__table tbody tr:not(.gl-row-par):not(.gl-row-putt) td{
+  padding: 3px 2px !important;
+  line-height: 1 !important;
+}
+
+/* パット行: コンパクト化 */
+#view-golf-score .gl-scoretable__table tr.gl-row-putt td,
+#view-golf-score .gl-scoretable__table tr.gl-row-putt th{
+  padding: 3px 2px !important;
+  height: 24px !important;
+  font-size: 15px !important;
+  line-height: 1.1 !important;
+}
+
+/* 自分タグを極小化 */
+#view-golf-score .gl-tag-self{
+  font-size: 9px !important;
+  padding: 0px 5px !important;
+  margin: 1px auto 0 !important;
+  line-height: 1.3 !important;
+}
+
+/* スコア入力パネルの確定ボタン: 下余白を確保してフッターから浮上 */
+#view-golf-score .gl-commit{
+  margin-top: 8px !important;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px) !important;
+}
