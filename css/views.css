@@ -1267,3 +1267,16 @@
 .gl-history-detail__btn:active { transform: scale(0.97); }
 .gl-history-detail__btn--line { background: #06C755; color: #fff; }
 .gl-history-detail__btn--delete { background: #FFECEC; color: #C62828; border: 1px solid #F5C6C6; }
+
+
+/* =========================================================
+   後半スタート時刻ラベル: 老眼配慮で大きく表示
+   （現在時刻の追従は renderHeader で自動化済み）
+   ========================================================= */
+#start-time-label {
+  font-size: 20px !important;
+  font-weight: 800 !important;
+  letter-spacing: 1px;
+  line-height: 1.1;
+}
+

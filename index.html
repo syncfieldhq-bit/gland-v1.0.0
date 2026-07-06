@@ -684,14 +684,24 @@
         }
       }
 
-      function renderHeader() {
+            function renderHeader() {
         var m = document.getElementById("display-mode-label");
         if (m) {
           m.textContent =
             state.displayMode === "stroke" ? "ストローク" :
             state.displayMode === "plusminus" ? "±表示" : "◎-△";
         }
+        // 後半スタート時刻: ユーザーが未確定なら現在時刻を自動反映
+        // （タブ切替・スコア更新など再描画のたびに追従、老眼配慮で大きく表示）
+        var stLabel = document.getElementById("start-time-label");
+        if (stLabel) {
+          if (!state.startTimeSetByUser) {
+            state.startTime = timeNow();
+          }
+          stLabel.textContent = state.startTime || "--:--";
+        }
       }
+
 
       function renderAll() {
         renderHeader();
