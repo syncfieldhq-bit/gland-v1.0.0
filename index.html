@@ -1391,7 +1391,7 @@
       // - 自分(userId一致)を先頭
       // - 他メンバーは joinedAt 昇順
       // - 自分の holes(スコア)は既存のものを保持
-      // - 他メンバーの holes は新規生成(白紙)
+      // - 他メンバーの holes も既存があれば保持（チカチカ防止）
       function applyMembersToState(members) {
         var myUserId = (typeof window.glandGetUserId === "function") ? window.glandGetUserId() : "";
         var displayName = function (m) {
@@ -1409,6 +1409,16 @@
         others.sort(function (a, b) {
           return (a.joinedAt || 0) - (b.joinedAt || 0);
         });
+        // ★ Phase 5.5: 既存の他メンバーholesをuserIdでマップ化して再利用（チカチカ防止）
+        var existingHolesByUserId = {};
+        if (state.players) {
+          for (var p = 0; p < state.players.length; p++) {
+            var pl = state.players[p];
+            if (pl && pl.userId && !pl.isSelf && pl.holes) {
+              existingHolesByUserId[pl.userId] = pl.holes;
+            }
+          }
+        }
         // 既存 players[0](自分)の holes を退避
         var myHoles = (state.players && state.players[0] && state.players[0].holes) || cloneHoles(HOLES);
         // 新しい players 配列を組み立て
@@ -1420,19 +1430,21 @@
           isSelf: true,
           holes: myHoles
         });
-        // 他メンバー
+        // 他メンバー（既存holesがあれば流用）
         for (var j = 0; j < others.length; j++) {
           var o = others[j];
+          var uid = o.userId || "";
           newPlayers.push({
-            userId: o.userId || "",
+            userId: uid,
             name: displayName(o),
             isSelf: false,
-            holes: cloneHoles(HOLES)
+            holes: existingHolesByUserId[uid] || cloneHoles(HOLES)
           });
         }
         state.players = newPlayers;
         state.selfIdx = 0;
       }
+
 
       // ================================================
       // Phase 5 STEP C: 自分のスコアをサーバに送信

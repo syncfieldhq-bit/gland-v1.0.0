@@ -195,6 +195,8 @@
 /* ---- Commit row (幅いっぱいの緑ボタン 1個) ---- */
 .gl-commit {
   margin-top: 12px;
+  /* Android ナビゲーションバー / iPhone ホームバー対策 */
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
 }
 .gl-commit__btn {
   width: 100%;
