@@ -1,6 +1,6 @@
 /* ========================================================
  * G-LAND v1.0.0 - Input Panel (Legacy Layout)
- * 5 パステルボタン + パット 6 個 + 確定 1 個
+ * 5 パステルボタン + パット行（ラベル+4ボタン+［+］）+ 確定 1 個
  * ======================================================== */
 
 const InputPanel = {
@@ -60,7 +60,6 @@ const InputPanel = {
 
   /**
    * シンプル 5 ボタン: [−] [par-1] [par] [par+1] [+]
-   * 両端は現在値からの ±1 微調整ボタン、中央3個は絶対値ダイレクト入力
    */
   _renderSimple(data, handlers) {
     const wrap = document.createElement("div");
@@ -68,7 +67,6 @@ const InputPanel = {
     const par = Number(data.par);
     const cur = data.strokes;
 
-    // Par別のスコアラベル (差分から名前)
     const labelFor = (diff) => {
       if (diff <= -3) return "アルバ";
       if (diff === -2) return "イーグル";
@@ -80,12 +78,6 @@ const InputPanel = {
       return "";
     };
 
-    // ---- 5 ボタン定義 ----
-    // 左端: −(現在値-1、下限1)
-    // 中1: par-1 (バーディ)
-    // 中2: par   (パー)
-    // 中3: par+1 (ボギー)
-    // 右端: +(現在値+1、上限15)
     const buttons = [
       { key: "minus",   cls: "gl-simple__btn--minus",  num: "−",     lbl: "" },
       { key: par - 1,   cls: "gl-simple__btn--birdie", num: par - 1, lbl: labelFor(-1) },
@@ -97,7 +89,6 @@ const InputPanel = {
     buttons.forEach(b => {
       const btn = document.createElement("button");
       btn.className = "gl-simple__btn " + b.cls;
-      // アクティブ判定: 中央3個で cur が一致した時
       if (typeof b.key === "number" && cur === b.key) {
         btn.classList.add("gl-simple__btn--active");
       }
@@ -105,17 +96,14 @@ const InputPanel = {
       btn.addEventListener("click", () => {
         if (!handlers.onStrokesChange) return;
         if (b.key === "minus") {
-          // 現在値 -1 (未入力なら par -1 から開始)、下限1
           const base = (cur == null) ? par : cur;
           const next = Math.max(1, base - 1);
           handlers.onStrokesChange(next);
         } else if (b.key === "plus") {
-          // 現在値 +1 (未入力なら par +1 から開始)、上限15
           const base = (cur == null) ? par : cur;
           const next = Math.min(15, base + 1);
           handlers.onStrokesChange(next);
         } else {
-          // 中央3個: 直接入力
           handlers.onStrokesChange(b.key);
         }
       });
@@ -127,7 +115,6 @@ const InputPanel = {
 
   /**
    * カウンター: [−] 大数字 [＋]
-   * 初期値は 0 (初心者は一打ごとに + を押してカウントアップする)
    */
   _renderCounter(data, handlers) {
     const wrap = document.createElement("div");
@@ -135,7 +122,6 @@ const InputPanel = {
     const cur = data.strokes;
     const par = Number(data.par);
 
-    // − ボタン: 現在値 -1 (下限 0)
     const minus = document.createElement("button");
     minus.className = "gl-counter__btn gl-counter__btn--minus";
     minus.textContent = "−";
@@ -145,7 +131,6 @@ const InputPanel = {
       if (handlers.onStrokesChange) handlers.onStrokesChange(next);
     });
 
-    // 中央ディスプレイ: 0 からスタート、パー差はスコアが入ってから表示
     const display = document.createElement("div");
     display.className = "gl-counter__display";
     const shown = (cur == null) ? 0 : cur;
@@ -158,7 +143,6 @@ const InputPanel = {
     }
     display.innerHTML = `<span class="num">${shown}</span><span class="lbl">${diffText}</span>`;
 
-    // + ボタン: 現在値 +1 (初期 null なら 1 、上限 20)
     const plus = document.createElement("button");
     plus.className = "gl-counter__btn gl-counter__btn--plus";
     plus.textContent = "＋";
@@ -175,19 +159,27 @@ const InputPanel = {
   },
 
   /**
-   * パット 6 ボタン: [0][1][2][3][4][+]
-   * 最後の + は現在値 +1 (現在 null なら 5 から開始、上限 20)
+   * パット行: [パット] [0] [1] [2] [3] [+]
+   * ラベルとボタンを1行に統合してコンパクト化
+   * （老眼配慮・Android 確定ボタン見切れ対策・独立ラベル行を廃止）
+   * + ボタンは現在値 +1 (現在 null または 3 なら 4 から開始、上限 20)
    */
   _renderPutt(data, handlers) {
     const wrap = document.createElement("div");
     wrap.className = "gl-putt";
     const cur = data.putts;
-    wrap.innerHTML = `<div class="gl-putt__label">🚶 パット数 ${cur != null ? cur : ""}</div>`;
+
     const row = document.createElement("div");
     row.className = "gl-putt__row";
 
-    // 0-4 の数字ボタン
-    [0, 1, 2, 3, 4].forEach(n => {
+    // 先頭: ラベル（ボタンではなく静的表示）
+    const label = document.createElement("div");
+    label.className = "gl-putt__label-inline";
+    label.textContent = "パット";
+    row.appendChild(label);
+
+    // 0-3 の数字ボタン
+    [0, 1, 2, 3].forEach(n => {
       const btn = document.createElement("button");
       btn.className = "gl-putt__btn" + (cur === n ? " gl-putt__btn--active" : "");
       btn.textContent = String(n);
@@ -196,14 +188,14 @@ const InputPanel = {
       });
       row.appendChild(btn);
     });
-    // 5番目: + ボタン (カウントアップ)
+
+    // 末尾: + ボタン (カウントアップ、4パット以上に対応)
     const plusBtn = document.createElement("button");
-    plusBtn.className = "gl-putt__btn gl-putt__btn--plus" + (cur != null && cur >= 5 ? " gl-putt__btn--active" : "");
-    // 現在値が 5 以上ならその数字を見せる、それ以外は +
-    plusBtn.textContent = (cur != null && cur >= 5) ? String(cur) : "+";
+    plusBtn.className = "gl-putt__btn gl-putt__btn--plus" + (cur != null && cur >= 4 ? " gl-putt__btn--active" : "");
+    plusBtn.textContent = (cur != null && cur >= 4) ? String(cur) : "+";
     plusBtn.addEventListener("click", () => {
       if (!handlers.onPuttsChange) return;
-      const base = (cur == null) ? 4 : cur;
+      const base = (cur == null) ? 3 : cur;
       const next = Math.min(20, base + 1);
       handlers.onPuttsChange(next);
     });
