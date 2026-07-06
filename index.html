@@ -684,23 +684,29 @@
         }
       }
 
-            function renderHeader() {
+        function renderHeader() {
         var m = document.getElementById("display-mode-label");
         if (m) {
           m.textContent =
             state.displayMode === "stroke" ? "ストローク" :
             state.displayMode === "plusminus" ? "±表示" : "◎-△";
         }
-        // 後半スタート時刻: ユーザーが未確定なら現在時刻を自動反映
-        // （タブ切替・スコア更新など再描画のたびに追従、老眼配慮で大きく表示）
-        var stLabel = document.getElementById("start-time-label");
-        if (stLabel) {
-          if (!state.startTimeSetByUser) {
-            state.startTime = timeNow();
-          }
-          stLabel.textContent = state.startTime || "--:--";
-        }
+        // 後半スタート時刻: 未確定なら現在時刻を反映（老眼配慮で大きく表示）
+        updateStartTimeLabel();
       }
+
+      // 後半スタート時刻ラベルの更新
+      // 未確定時: 現在時刻を自動反映（1分毎 + 再描画時 + 復帰時）
+      // 確定時: ユーザーが設定した値を保持（触らない）
+      function updateStartTimeLabel() {
+        var stLabel = document.getElementById("start-time-label");
+        if (!stLabel) return;
+        if (!state.startTimeSetByUser) {
+          state.startTime = timeNow();
+        }
+        stLabel.textContent = state.startTime || "--:--";
+      }
+
 
 
       function renderAll() {
@@ -2045,19 +2051,35 @@ function tryJoinPendingRound() {
         var lkLabel = byId("locker-label");
         if (lkLabel) lkLabel.textContent = state.lockerNumber != null ? state.lockerNumber : "───";
 
-        // 初回登録済ならホーム、未登録ならゴルフを背景にオンボーディング強制表示
+                // 初回登録済ならホーム、未登録ならゴルフを背景にオンボーディング強制表示
         if (isProfileComplete()) {
           switchNav("home");
         } else {
           switchNav("golf");
           openOnboarding();
         }
+
+        // 後半スタート時刻: 未確定時は1分毎に現在時刻を自動更新（リアルタイム表示）
+        // ローカル処理のみ・ネットワーク通信なし・他ポーリングと独立
+        setInterval(function () {
+          if (!state.startTimeSetByUser) {
+            updateStartTimeLabel();
+          }
+        }, 60 * 1000);
+
+        // バックグラウンドから復帰した瞬間にも即時更新（スマホをスリープから戻した時など）
+        document.addEventListener("visibilitychange", function () {
+          if (!document.hidden && !state.startTimeSetByUser) {
+            updateStartTimeLabel();
+          }
+        });
       }
       if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", boot);
       } else {
         boot();
       }
+
     })();
 
     /* ==============================================
