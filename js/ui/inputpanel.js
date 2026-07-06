@@ -174,20 +174,27 @@ const InputPanel = {
     return wrap;
   },
 
-  /**
-   * パット 6 ボタン: [0][1][2][3][4][+]
-   * 最後の + は現在値 +1 (現在 null なら 5 から開始、上限 20)
+    /**
+   * パット行: [パット] [0] [1] [2] [3] [+]
+   * ラベルとボタンを1行に統合してコンパクト化（老眼配慮・Android 確定ボタン見切れ対策）
+   * + ボタンは現在値 +1 (現在 null または 3 なら 4 から開始、上限 20)
    */
   _renderPutt(data, handlers) {
     const wrap = document.createElement("div");
     wrap.className = "gl-putt";
     const cur = data.putts;
-    wrap.innerHTML = `<div class="gl-putt__label">🚶 パット数 ${cur != null ? cur : ""}</div>`;
+
     const row = document.createElement("div");
     row.className = "gl-putt__row";
 
-    // 0-4 の数字ボタン
-    [0, 1, 2, 3, 4].forEach(n => {
+    // 先頭: ラベル（ボタンではなく静的表示）
+    const label = document.createElement("div");
+    label.className = "gl-putt__label-inline";
+    label.textContent = "パット";
+    row.appendChild(label);
+
+    // 0-3 の数字ボタン
+    [0, 1, 2, 3].forEach(n => {
       const btn = document.createElement("button");
       btn.className = "gl-putt__btn" + (cur === n ? " gl-putt__btn--active" : "");
       btn.textContent = String(n);
@@ -196,14 +203,15 @@ const InputPanel = {
       });
       row.appendChild(btn);
     });
-    // 5番目: + ボタン (カウントアップ)
+
+    // 末尾: + ボタン (カウントアップ、4パット以上に対応)
     const plusBtn = document.createElement("button");
-    plusBtn.className = "gl-putt__btn gl-putt__btn--plus" + (cur != null && cur >= 5 ? " gl-putt__btn--active" : "");
-    // 現在値が 5 以上ならその数字を見せる、それ以外は +
-    plusBtn.textContent = (cur != null && cur >= 5) ? String(cur) : "+";
+    plusBtn.className = "gl-putt__btn gl-putt__btn--plus" + (cur != null && cur >= 4 ? " gl-putt__btn--active" : "");
+    // 現在値が 4 以上ならその数字を見せる、それ以外は +
+    plusBtn.textContent = (cur != null && cur >= 4) ? String(cur) : "+";
     plusBtn.addEventListener("click", () => {
       if (!handlers.onPuttsChange) return;
-      const base = (cur == null) ? 4 : cur;
+      const base = (cur == null) ? 3 : cur;
       const next = Math.min(20, base + 1);
       handlers.onPuttsChange(next);
     });
@@ -212,6 +220,6 @@ const InputPanel = {
     wrap.appendChild(row);
     return wrap;
   }
-};
+
 
 if (typeof window !== "undefined") window.InputPanel = InputPanel;
