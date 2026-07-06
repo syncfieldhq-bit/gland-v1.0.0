@@ -554,23 +554,25 @@
   .gl-bottomnav { display: none !important; }
   #view-golf-score .gl-summary-header { display: none !important; }
 
-  /* タブは残す（組表示/スコア入力の切り替え） */
+    /* タブは残す（組表示/スコア入力の切り替え）- 上部余白を最大限詰める */
   #view-golf-score .gl-tabs {
-    padding: 3px 8px;
+    padding: 1px 8px 2px;
     gap: 6px;
+    margin: 0;
   }
   #view-golf-score .gl-tabs__tab {
-    padding: 4px 12px;
+    padding: 2px 12px;
     font-size: 12px;
-    min-height: 30px;
+    min-height: 24px;
   }
 
-  /* コンテンツエリアを最大化 */
+  /* コンテンツエリアを最大化（タブが小さくなった分、テーブルが上に上がる） */
   #view-golf-score .gl-content {
     padding: 0 4px;
-    height: calc(100vh - 36px);
+    height: calc(100vh - 28px);
     overflow: hidden;
   }
+
   #view-golf-score #view-input,
   #view-golf-score #view-summary {
     height: 100%;
