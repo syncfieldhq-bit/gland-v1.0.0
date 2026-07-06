@@ -113,8 +113,10 @@
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: 88px; /* 下部ナビ分の余白 */
+  /* 下部ナビ(60px) + セーフエリア + Android ナビゲーションバー余白(48px) */
+  padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px) + 48px);
 }
+
 
 /* ---------- Bottom Nav (4 タブ・固定) ---------- */
 .gl-bottomnav {

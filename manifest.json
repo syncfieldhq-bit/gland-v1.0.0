@@ -9,6 +9,13 @@
   "background_color": "#ffffff",
   "theme_color": "#3BB774",
   "lang": "ja",
+  "share_target": {
+    "action": "./",
+    "method": "GET",
+    "params": {
+      "text": "join"
+    }
+  },
   "icons": [
     {
       "src": "assets/icon.png",

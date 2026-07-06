@@ -1674,17 +1674,48 @@
   }
 }
 
-// Phase 4: URL の ?join= を検出（アプリ起動時に必ず実行）
+// Phase 4+: URL の ?join= を検出 + localStorage で永続化
+// PWA 起動時は URL パラメータが消えるため localStorage フォールバックを併用
 (function detectJoinParamOnLoad() {
+  var PENDING_JOIN_KEY = "gl_pending_join_v1";
   try {
     var params = new URLSearchParams(location.search);
     var joinId = params.get("join");
+    // Web Share Target 経由の場合、text パラメータに URL が入る
+    if (!joinId) {
+      var sharedText = params.get("text") || "";
+      var m = sharedText.match(/[?&]join=([A-Za-z0-9_-]+)/);
+      if (m) joinId = m[1];
+    }
     if (joinId) {
       state.pendingJoinRoundId = joinId;
-      console.log("[GL] pending join round:", joinId);
+      // 永続化（PWA 起動時に備える）
+      try {
+        localStorage.setItem(PENDING_JOIN_KEY, JSON.stringify({
+          joinId: joinId,
+          savedAt: Date.now()
+        }));
+      } catch (e) { /* ignore */ }
+      console.log("[GL] pending join round (from URL):", joinId);
+    } else {
+      // URL に無い場合、localStorage から復元（10 分以内のもののみ有効）
+      try {
+        var raw = localStorage.getItem(PENDING_JOIN_KEY);
+        if (raw) {
+          var obj = JSON.parse(raw);
+          if (obj && obj.joinId && obj.savedAt && (Date.now() - obj.savedAt) < 10 * 60 * 1000) {
+            state.pendingJoinRoundId = obj.joinId;
+            console.log("[GL] pending join round (from localStorage):", obj.joinId);
+          } else {
+            // 期限切れ → 削除
+            localStorage.removeItem(PENDING_JOIN_KEY);
+          }
+        }
+      } catch (e) { /* ignore */ }
     }
   } catch (e) { /* ignore */ }
 })();
+
 // Phase 4: userId が発行されるまで待って合流を試みる（登録直後・起動時 両対応）
 function waitForUserIdAndJoin(attempts) {
   if (attempts === undefined) attempts = 20;
@@ -1725,15 +1756,16 @@ function tryJoinPendingRound() {
   }
   
   window.glandApi("apiJoinRound", {
-  joinId: joinRoundId,
-  userId: userId
-}).then(function (r) {
+    joinId: joinRoundId,
+    userId: userId
+  }).then(function (r) {
 
     var joined = r && ((r.data && r.data.roundId) || r.roundId);
     if (r && r.ok && joined) {
       state.roundId = joined;
       state.pendingJoinRoundId = "";
       try { localStorage.setItem("gl_round_id_v1", joined); } catch (e) {}
+      try { localStorage.removeItem("gl_pending_join_v1"); } catch (e) {}
       console.log("[GL] joined round:", joined);
       alert("ラウンドに合流しました！");
       // 合流成功後は、スコアカード画面へ自動遷移する
@@ -1748,12 +1780,14 @@ function tryJoinPendingRound() {
       console.warn("[GL] apiJoinRound failed:", r && (r.error || "unknown"));
       alert("ラウンドへの合流に失敗しました。ラウンドIDを確認してください。");
       state.pendingJoinRoundId = "";
+      try { localStorage.removeItem("gl_pending_join_v1"); } catch (e) {}
     }
   }).catch(function (e) {
     console.warn("[GL] apiJoinRound exception:", e);
     alert("通信エラー: ラウンドに合流できませんでした。");
   });
 }
+
 
 
       // ================================================

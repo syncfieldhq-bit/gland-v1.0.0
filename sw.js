@@ -4,7 +4,7 @@
  * ====================================================== */
 
 // ⚠️アプリを更新したら必ずこの数字を上げる（キャッシュ破棄のため）
-const CACHE_VERSION = 'gland-v2.0.19';
+const CACHE_VERSION = 'gland-v2.0.20';
 
 // キャッシュするファイルの一覧
 const CACHE_URLS = [
@@ -51,18 +51,24 @@ self.addEventListener('activate', event => {
 
 // fetch: ネットワーク優先、失敗したらキャッシュにフォールバック
 // ⇒ 最新版が優先されつつ、オフラインでも動く
+// ⚠️ ただし ?join= 付き URL は常にネットワーク優先 + キャッシュしない
 self.addEventListener('fetch', event => {
   // GET リクエストのみ処理
   if (event.request.method !== 'GET') return;
 
+  const url = new URL(event.request.url);
+  const hasJoinParam = url.searchParams.has('join');
+
   event.respondWith(
     fetch(event.request)
       .then(response => {
-        // 成功したらキャッシュを更新
-        const clone = response.clone();
-        caches.open(CACHE_VERSION).then(cache => {
-          cache.put(event.request, clone).catch(() => {});
-        });
+        // ?join= 付きはキャッシュ更新しない（パラメータ付きURLがキャッシュされるのを防ぐ）
+        if (!hasJoinParam) {
+          const clone = response.clone();
+          caches.open(CACHE_VERSION).then(cache => {
+            cache.put(event.request, clone).catch(() => {});
+          });
+        }
         return response;
       })
       .catch(() => caches.match(event.request).then(r => r || caches.match('./index.html')))
