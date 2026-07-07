@@ -2163,13 +2163,8 @@ function tryJoinPendingRound() {
         var lkLabel = byId("locker-label");
         if (lkLabel) lkLabel.textContent = state.lockerNumber != null ? state.lockerNumber : "───";
 
-                // 初回登録済ならホーム、未登録ならゴルフを背景にオンボーディング強制表示
-        if (isProfileComplete()) {
-          switchNav("home");
-        } else {
-          switchNav("golf");
-          openOnboarding();
-        }
+                // v2.2.2 (2026-07): 強制オンボーディング廃止、常にホーム画面からスタート
+        switchNav("home");
 
         // 後半スタート時刻: 未確定時は1分毎に現在時刻を自動更新（リアルタイム表示）
         // ローカル処理のみ・ネットワーク通信なし・他ポーリングと独立
