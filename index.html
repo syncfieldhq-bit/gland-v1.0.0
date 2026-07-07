@@ -1070,7 +1070,7 @@ html,body{overflow-x:hidden}
             } catch (e) {}
 
             var diag = "先に「ラウンド開始」を押してください\n\n";
-            diag += "─── 診断情報 v2.4.3 ───\n";
+            diag += "─── 診断情報 v2.4.4 ───\n";
             diag += "state.roundId: " + (state.roundId || "(空)") + "\n";
             diag += "rid-localStorage: " + (savedRid || "(空)") + "\n";
             diag += "API接続: " + (apiConfigured ? "OK" : "NG") + "\n";
@@ -1310,6 +1310,16 @@ html,body{overflow-x:hidden}
             try { renderHome && renderHome(); } catch(_){}
             try { renderInputTable(); } catch(_){}
             closeModalHard();
+
+            // v2.4.4: ゲスト合流フローとして登録した場合は、登録完了後に自動合流
+            if (state.pendingJoinRoundId) {
+              // userId発行（非同期）を待って合流をキック
+              setTimeout(function () {
+                if (typeof waitForUserIdAndJoin === "function") {
+                  waitForUserIdAndJoin();
+                }
+              }, 300);
+            }
           };
           btn.addEventListener("click", handler);
           btn.addEventListener("touchend", handler);
@@ -2310,13 +2320,29 @@ html,body{overflow-x:hidden}
         if (el) el.style.display = "none";
       }
       function checkOnboarding() {
-  /* v2.2.0 (2026-07): 強制オンボーディング廃止
+  /* v2.4.4 (2026-07): ?join= 付きゲストは強制オンボーディング
    * ------------------------------------------------
-   * アプリ起動時にプロフィール登録モーダルを出さない。
-   * 名前登録はスコア入力画面の「あなた」枠タップから行う。
-   * 合流待ちラウンドがあれば、userId 発行を待って合流実行。
+   * v2.2.0 で強制オンボは廃止したが、?join= で来たゲストは
+   * プロフィール未登録だとどこで登録するか分からないので、
+   * 未登録なら first-name-modal を強制表示する。
+   * 登録完了後に userId 発行を待って自動合流させる。
    * ------------------------------------------------ */
+  var haveName = !!(state.profile && state.profile.lastName && state.profile.lastNameKana);
+  if (state.pendingJoinRoundId && !haveName) {
+    // ゲスト合流 & 未登録 → 名前登録モーダルを強制表示
+    var m = document.getElementById("first-name-modal");
+    if (m) {
+      m.style.display = "flex";
+      // スキップ・閉じるボタンを隠す(ゲストは登録必須)
+      var skip = document.getElementById("fn-skip");
+      if (skip) skip.style.display = "none";
+      var closeBtn = document.getElementById("fn-close");
+      if (closeBtn) closeBtn.style.display = "none";
+    }
+    return;
+  }
   if (state.pendingJoinRoundId) {
+    // 登録済みゲスト → userId発行待ちで自動合流
     waitForUserIdAndJoin();
   }
 }
