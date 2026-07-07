@@ -54,6 +54,9 @@
 .gl-gate__btn--primary:active{transform:scale(.98);}
 .gl-gate__footer{margin-top:24px;text-align:center;}
 .gl-gate__version{font-size:12px;opacity:.6;}
+/* v2.5.1 ゲートアクティブ時は bodyスクロール拑止 & 下敷きUI非表示 */
+body.gl-gate-active { overflow: hidden !important; }
+body.gl-gate-active > #app { display: none !important; }
 /* v2.3.2 名前登録ボタン */
 #name-guide-card:active{transform:scale(0.97);opacity:0.85}
 /* v2.3.4 Android/iPhone 下部フッター切れ防止 */
@@ -93,51 +96,76 @@ html,body{overflow-x:hidden}
       <b>ホーム画面へのインストール</b>をお願いします
     </div>
 
-    <!-- iPhone (Safari) 用 -->
+    <!-- iPhone (Safari) 用 (v2.5.1: 大きく分かりやすく) -->
     <div id="gate-ios" class="gl-gate__panel" style="display:none">
-      <div class="gl-gate__badge gl-gate__badge--ios">iPhone / iPad</div>
-      <ol class="gl-gate__steps">
-        <li><b>①</b> 画面下の <b>共有ボタン</b> <span class="gl-gate__ico">⬆</span> をタップ</li>
-        <li><b>②</b> メニューを下にスクロール</li>
-        <li><b>③</b> <b>「ホーム画面に追加」</b> をタップ</li>
-        <li><b>④</b> 右上の <b>「追加」</b> をタップ</li>
-        <li><b>⑤</b> Safariを閉じる</li>
-        <li><b>⑥</b> ホーム画面の <b>G-LANDアイコン</b> をタップ</li>
+      <div class="gl-gate__badge gl-gate__badge--ios">📱 iPhone / iPad</div>
+      <div style="margin:16px 0 20px;font-size:15px;color:#475569;line-height:1.6">
+        アプリとして使うために<br>
+        <b>ホーム画面に追加</b>してください
+      </div>
+      <ol class="gl-gate__steps" style="font-size:16px;line-height:1.8">
+        <li><span style="display:inline-block;width:28px;height:28px;background:#0284c7;color:#fff;border-radius:50%;text-align:center;line-height:28px;font-weight:bold;margin-right:8px">1</span>画面下の <b>共有ボタン <span style="font-size:22px;color:#0284c7">⬆</span></b> をタップ</li>
+        <li><span style="display:inline-block;width:28px;height:28px;background:#0284c7;color:#fff;border-radius:50%;text-align:center;line-height:28px;font-weight:bold;margin-right:8px">2</span>メニューを下にスクロール</li>
+        <li><span style="display:inline-block;width:28px;height:28px;background:#0284c7;color:#fff;border-radius:50%;text-align:center;line-height:28px;font-weight:bold;margin-right:8px">3</span><b>「ホーム画面に追加」</b> をタップ</li>
+        <li><span style="display:inline-block;width:28px;height:28px;background:#0284c7;color:#fff;border-radius:50%;text-align:center;line-height:28px;font-weight:bold;margin-right:8px">4</span>右上の <b>「追加」</b> をタップ</li>
+        <li><span style="display:inline-block;width:28px;height:28px;background:#059669;color:#fff;border-radius:50%;text-align:center;line-height:28px;font-weight:bold;margin-right:8px">5</span><b>Safariを閉じる</b></li>
+        <li><span style="display:inline-block;width:28px;height:28px;background:#059669;color:#fff;border-radius:50%;text-align:center;line-height:28px;font-weight:bold;margin-right:8px">6</span>ホーム画面の <b style="color:#059669">G-LANDアイコン</b> をタップ ⛳</li>
       </ol>
-      <div class="gl-gate__note">
-        ⚠ Chrome では追加できません。<br>
-        <b>必ずSafariで開いてください</b>
+      <div class="gl-gate__note" style="background:#fef3c7;border-left:4px solid #f59e0b;padding:14px;border-radius:8px;margin-top:16px;font-size:14px">
+        ⚠️ <b>Chromeでは追加できません</b><br>
+        必ず <b style="color:#0284c7">Safari</b> で開いてください
+      </div>
+      <div style="margin-top:20px;padding:14px;background:#dcfce7;border-radius:10px;font-size:14px;color:#166534;line-height:1.5">
+        💡 <b>登録画面はアイコンから起動した後に出ます</b><br>
+        いまは <b>インストールだけ</b> に集中してください
       </div>
     </div>
 
-    <!-- iOS Chrome 用（Safariで開くよう促す） -->
+    <!-- iOS Chrome 用（Safariで開くよう促す）v2.5.1 -->
     <div id="gate-ios-chrome" class="gl-gate__panel" style="display:none">
-      <div class="gl-gate__badge gl-gate__badge--warn">Chromeで開かれています</div>
-      <div class="gl-gate__lead" style="margin-top:16px">
-        iPhoneでは <b>Safari</b> でしかインストールできません。
+      <div class="gl-gate__badge gl-gate__badge--warn">⚠️ Chromeで開かれています</div>
+      <div style="margin:20px 0;font-size:16px;line-height:1.6;color:#475569">
+        iPhoneでは <b style="color:#0284c7">Safari</b> でしか<br>
+        アプリをインストールできません
       </div>
-      <button id="gate-open-safari" class="gl-gate__btn gl-gate__btn--primary">
-        Safariで開く
+      <button id="gate-open-safari" class="gl-gate__btn gl-gate__btn--primary" style="padding:16px 24px;font-size:17px;font-weight:bold">
+        🧭 Safariで開く
       </button>
-      <div class="gl-gate__note">
-        ボタンが動かない場合は、URLを長押しコピーしてSafariに貼り付けてください
+      <div id="gate-copy-url-btn" style="margin-top:12px">
+        <button id="gate-copy-url" style="width:100%;padding:14px;background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;border-radius:10px;font-size:15px;font-weight:bold;cursor:pointer">
+          📋 URLをコピー
+        </button>
+      </div>
+      <div class="gl-gate__note" style="background:#fef3c7;border-left:4px solid #f59e0b;padding:14px;border-radius:8px;margin-top:16px;font-size:14px;line-height:1.5">
+        <b>ボタンが動かない場合:</b><br>
+        1️⃣ URLをコピー<br>
+        2️⃣ Safariを開く<br>
+        3️⃣ アドレスバーに貼り付け
       </div>
     </div>
 
-    <!-- Android (Chrome) 用 -->
+    <!-- Android (Chrome) 用 (v2.5.1) -->
     <div id="gate-android" class="gl-gate__panel" style="display:none">
-      <div class="gl-gate__badge gl-gate__badge--android">Android</div>
-      <ol class="gl-gate__steps">
-        <li><b>①</b> 下の <b>「インストール」</b> ボタンをタップ</li>
-        <li><b>②</b> 確認画面で <b>「インストール」</b> をタップ</li>
-        <li><b>③</b> 完了後、<b>「開く」</b> をタップ</li>
+      <div class="gl-gate__badge gl-gate__badge--android">🤖 Android</div>
+      <div style="margin:16px 0 20px;font-size:15px;color:#475569;line-height:1.6">
+        アプリとして使うために<br>
+        <b>ホーム画面に追加</b>してください
+      </div>
+      <ol class="gl-gate__steps" style="font-size:16px;line-height:1.8">
+        <li><span style="display:inline-block;width:28px;height:28px;background:#059669;color:#fff;border-radius:50%;text-align:center;line-height:28px;font-weight:bold;margin-right:8px">1</span>下の <b>「アプリをインストール」</b> ボタンをタップ</li>
+        <li><span style="display:inline-block;width:28px;height:28px;background:#059669;color:#fff;border-radius:50%;text-align:center;line-height:28px;font-weight:bold;margin-right:8px">2</span>確認画面で <b>「インストール」</b> をタップ</li>
+        <li><span style="display:inline-block;width:28px;height:28px;background:#059669;color:#fff;border-radius:50%;text-align:center;line-height:28px;font-weight:bold;margin-right:8px">3</span>完了後、<b>ホーム画面のアイコン</b>をタップして起動 ⛳</li>
       </ol>
-      <button id="gate-android-install" class="gl-gate__btn gl-gate__btn--primary" style="display:none">
+      <button id="gate-android-install" class="gl-gate__btn gl-gate__btn--primary" style="display:none;padding:16px 24px;font-size:17px;font-weight:bold;margin-top:8px">
         📥 アプリをインストール
       </button>
-      <div id="gate-android-manual" class="gl-gate__note">
-        自動ボタンが出ない場合：<br>
-        右上 <b>⠇メニュー</b> → <b>「アプリをインストール」</b> または <b>「ホーム画面に追加」</b>
+      <div id="gate-android-manual" class="gl-gate__note" style="background:#fef3c7;border-left:4px solid #f59e0b;padding:14px;border-radius:8px;margin-top:16px;font-size:14px">
+        💡 自動ボタンが出ない場合：<br>
+        右上 <b>⠇ メニュー</b> → <b>「アプリをインストール」</b> または <b>「ホーム画面に追加」</b>
+      </div>
+      <div style="margin-top:20px;padding:14px;background:#dcfce7;border-radius:10px;font-size:14px;color:#166534;line-height:1.5">
+        💡 <b>登録画面はアイコンから起動した後に出ます</b><br>
+        いまは <b>インストールだけ</b> に集中してください
       </div>
     </div>
 
@@ -807,6 +835,11 @@ html,body{overflow-x:hidden}
       function renderNameGuide() {
         var m = document.getElementById("first-name-modal");
         if (!m) return;
+        // v2.5.1: インストールゲート表示中は名前登録モーダルを出さない（UX優先）
+        if (window.__glGateActive === true) {
+          m.style.display = "none";
+          return;
+        }
         // プロフィール登録済みなら絶対に出さない
         var haveName = !!(state.profile && state.profile.lastName && state.profile.lastNameKana);
         // Cookieをチェック（iOS PWA localStorage分離対策）
@@ -2369,6 +2402,8 @@ html,body{overflow-x:hidden}
    * 未登録なら first-name-modal を強制表示する。
    * 登録完了後に userId 発行を待って自動合流させる。
    * ------------------------------------------------ */
+  // v2.5.1: インストールゲート表示中は登録を要求しない（ゲート優先）
+  if (window.__glGateActive === true) return;
   var haveName = !!(state.profile && state.profile.lastName && state.profile.lastNameKana);
   if (state.pendingJoinRoundId && !haveName) {
     // ゲスト合流 & 未登録 → 名前登録モーダルを強制表示
@@ -2819,8 +2854,12 @@ function tryJoinPendingRound() {
      * ============================================== */
 
     /* ==============================================
-     * Task G: インストールゲート判定
-     * PWA起動時のみメインアプリを表示、ブラウザ経由はゲート画面
+     * v2.5.1: インストールゲート判定（完全版）
+     * ------------------------------------------------
+     * PWA起動時 → メインアプリ表示、__glGateActive = false
+     * ブラウザ経由 → ゲート画面表示、__glGateActive = true
+     *                 他のモーダル・登録は全て抑止
+     * ?join= URL の場合 → ゲートスキップして即合流フロー可能
      * ============================================== */
     (function(){
       var ua = navigator.userAgent || '';
@@ -2842,13 +2881,33 @@ function tryJoinPendingRound() {
       // ゲート表示不要のケース
       if (isStandalone || devBypass || isJoinFlow) {
         // ゲート非表示のまま (display:none)、通常のアプリ起動
+        window.__glGateActive = false;
+        // ?join= のゲストが未登録なら少し遅れて登録モーダルを出す
+        if (isJoinFlow && !isStandalone) {
+          setTimeout(function () {
+            try {
+              if (typeof checkOnboarding === 'function') checkOnboarding();
+            } catch (e) {}
+          }, 400);
+        }
         return;
       }
 
-      // ゲート表示
+      // ゲート表示（インストール未完了・ブラウザから通常アクセス）
       var gate = document.getElementById('install-gate');
       if (!gate) return;
+      window.__glGateActive = true;
       gate.style.display = 'block';
+
+      // v2.5.1: 他のモーダルを強制非表示（重なり防止）
+      var suppressIds = ['first-name-modal', 'onboarding-modal'];
+      suppressIds.forEach(function(id){
+        var el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+      });
+
+      // v2.5.1: メインアプリのラウンド系ボタンも視覚的に抑止（body に class 付与）
+      document.body.classList.add('gl-gate-active');
 
       // 各パネルの表示切替
       var panelIOS       = document.getElementById('gate-ios');
@@ -2866,7 +2925,7 @@ function tryJoinPendingRound() {
         if (panelDesktop) panelDesktop.style.display = 'block';
       }
 
-      // iOS Chrome → Safariで開くボタン
+      // iOS Chrome → Safariで開くボタン (v2.5.1)
       var openSafariBtn = document.getElementById('gate-open-safari');
       if (openSafariBtn) {
         openSafariBtn.addEventListener('click', function(){
@@ -2880,6 +2939,31 @@ function tryJoinPendingRound() {
               }).catch(function(){});
             }
           }, 800);
+        });
+      }
+      // v2.5.1: URLコピーボタン
+      var copyUrlBtn = document.getElementById('gate-copy-url');
+      if (copyUrlBtn) {
+        copyUrlBtn.addEventListener('click', function(){
+          var url = location.href;
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(function(){
+              copyUrlBtn.textContent = '✅ コピーしました！Safariに貼り付けてください';
+              copyUrlBtn.style.background = '#dcfce7';
+              copyUrlBtn.style.color = '#166534';
+              copyUrlBtn.style.borderColor = '#86efac';
+              setTimeout(function(){
+                copyUrlBtn.textContent = '📋 URLをコピー';
+                copyUrlBtn.style.background = '#f1f5f9';
+                copyUrlBtn.style.color = '#475569';
+                copyUrlBtn.style.borderColor = '#cbd5e1';
+              }, 3000);
+            }).catch(function(){
+              alert('URL: ' + url + '\n\n手動でコピーしてSafariに貼り付けてください');
+            });
+          } else {
+            alert('URL: ' + url + '\n\n手動でコピーしてSafariに貼り付けてください');
+          }
         });
       }
 
@@ -2904,15 +2988,28 @@ function tryJoinPendingRound() {
         });
       }
 
-      // Android: インストール完了検知
+      // v2.5.1: Android: インストール完了検知（自動で次のステップへ誘導）
       window.addEventListener('appinstalled', function(){
         var manual = document.getElementById('gate-android-manual');
         if (manual) {
-          manual.innerHTML = '✅ インストール完了！<br><b>ホーム画面のアイコン</b>からG-LANDを開いてください';
-          manual.style.background = 'rgba(255,234,136,.25)';
-          manual.style.borderLeftColor = '#FFEA88';
+          manual.innerHTML =
+            '<div style="font-size:20px;font-weight:bold;color:#059669;margin-bottom:8px">✅ インストール完了！</div>' +
+            '<div style="font-size:15px;margin-bottom:12px">' +
+              '<b>ホーム画面のG-LANDアイコン</b>をタップしてアプリを起動してください' +
+            '</div>' +
+            '<div style="font-size:13px;color:#64748b">' +
+              'この画面はもう閉じてOKです' +
+            '</div>';
+          manual.style.background = 'rgba(16,185,129,.12)';
+          manual.style.borderLeftColor = '#10b981';
+          manual.style.padding = '16px';
+          manual.style.borderRadius = '12px';
         }
         if (androidBtn) androidBtn.style.display = 'none';
+
+        // 各ステップを消してシンプルに
+        var steps = document.querySelectorAll('#gate-android .gl-gate__steps');
+        for (var i = 0; i < steps.length; i++) steps[i].style.display = 'none';
       });
 
       // ページの他のスクリプトがアプリを操作しないよう、bodyのスクロールをロック
