@@ -10,7 +10,7 @@
  *     .then(function(r){ ... });
  * ============================================================ */
 (function () {
-  var API_TIMEOUT = 20000; // 20秒
+  var API_TIMEOUT = 12000; // v2.5.3: 20秒 → 12秒に短縮
 
   function getUrl() {
     var cfg = window.GLAND_CONFIG || {};

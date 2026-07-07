@@ -2223,18 +2223,48 @@ html,body{overflow-x:hidden}
       var PEER_POLL_MS = 15000; // v2.5.2: 25秒 → 15秒 に短縮
       var peerPollTimer = null;
 
+      // v2.5.3: ポーリング回数カウンタ（メンバー一覧は10回に1回だけ取得する）
+      var peerPollCount = 0;
+
       function startPeerPolling() {
         if (peerPollTimer) return;
         console.log("[GL] peer polling started (interval=" + PEER_POLL_MS + "ms)");
         fetchPeerScores();
         peerPollTimer = setInterval(fetchPeerScores, PEER_POLL_MS);
+        // v2.5.3: キープアライブも一緒に開始
+        startGasKeepAlive();
       }
+
+      // v2.5.3: GAS Web App のコールドスタート回避
+      // 3分ごとに軽量 apiPing を投げてGASをウォームに保つ
+      var gasKeepAliveTimer = null;
+      function startGasKeepAlive() {
+        if (gasKeepAliveTimer) return;
+        var pingFn = function () {
+          if (typeof window.glandApi !== "function") return;
+          if (typeof window.glandApiIsConfigured !== "function" || !window.glandApiIsConfigured()) return;
+          window.glandApi("apiPing", {}).then(function (r) {
+            console.log("[GL] GAS keepalive ping OK");
+          }).catch(function (e) {
+            console.warn("[GL] GAS keepalive ping failed:", e && e.message);
+          });
+        };
+        // 初回はすぐに投げてコールドスタートを前候させる
+        pingFn();
+        gasKeepAliveTimer = setInterval(pingFn, 180000); // 3分
+        console.log("[GL] GAS keepalive started (every 180s)");
+      }
+      window.__glStartKeepAlive = startGasKeepAlive;
 
       function fetchPeerScores() {
         if (typeof window.glandApi !== "function") return;
         if (typeof window.glandApiIsConfigured !== "function" || !window.glandApiIsConfigured()) return;
         if (!state.roundId) return;
-        if (typeof refreshRoundMembers === "function") refreshRoundMembers(); 
+        // v2.5.3: 重複ポーリング削除！メンバー一覧は10回に1回（2分30秒に1回）だけ
+        peerPollCount++;
+        if (peerPollCount % 10 === 1) {
+          if (typeof refreshRoundMembers === "function") refreshRoundMembers();
+        }
         window.glandApi("apiListScores", { roundId: state.roundId }).then(function (r) {
           if (!r || !r.ok) {
             console.warn("[GL] apiListScores failed:", r && r.error);
@@ -3056,6 +3086,16 @@ function tryJoinPendingRound() {
           });
       });
     }
+
+    // v2.5.3: PWA起動時に即GASキープアライブを開始（コールドスタート回避）
+    window.addEventListener('load', function () {
+      // 500ms後にキープアライブ開始（api.jsロード待ち）
+      setTimeout(function () {
+        if (typeof window.__glStartKeepAlive === 'function') {
+          try { window.__glStartKeepAlive(); } catch (e) { console.warn('[GL] keepalive start failed:', e); }
+        }
+      }, 500);
+    });
   </script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
     <!-- ==== 名前登録初回モーダル（fixed overlay） v2.3.6 — ✕ボタン・STG二重保護 ==== -->
