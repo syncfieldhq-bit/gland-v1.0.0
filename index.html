@@ -1238,8 +1238,14 @@ html,body{overflow-x:hidden}
           }
         });
 
-        // 4桁コードで合流
+        // 4桁コードで合流 (v2.5.4: 連打防止)
+        var _joinInProgress = false;
         on(byId("gm-join"), function () {
+          // v2.5.4: 合流中の連打をブロック
+          if (_joinInProgress) {
+            console.log("[GL] join already in progress, ignoring click");
+            return;
+          }
           var input = document.getElementById("gm-join-code");
           var code = (input && input.value || "").trim().toUpperCase();
           if (!code || code.length !== 4) {
@@ -1255,11 +1261,27 @@ html,body{overflow-x:hidden}
             alert("ユーザーIDが未発行です。名前を登録してから再度お試しください");
             return;
           }
+          // v2.5.4: 合流中フラグON + ボタンに目印
+          _joinInProgress = true;
+          var joinBtn = document.getElementById("gm-join");
+          if (joinBtn) {
+            joinBtn.disabled = true;
+            joinBtn.textContent = "合流中...";
+          }
+          setTimeout(function () {
+            // 15秒経っても応答ないならフラグ強制解除
+            _joinInProgress = false;
+            if (joinBtn) { joinBtn.disabled = false; joinBtn.textContent = "合流"; }
+          }, 15000);
+
           window.glandApi("apiJoinRound", {
             groupCode: code,
             userId: userId,
             name: (state.profile && (state.profile.lastName || state.profile.nickname)) || "ゲスト"
           }).then(function (r) {
+            // v2.5.4: 合流完了に伴いフラグ解除
+            _joinInProgress = false;
+            if (joinBtn) { joinBtn.disabled = false; joinBtn.textContent = "合流"; }
             // v2.5.0: レスポンスのroundIdを完全抽出
             var joined = r && ((r.data && r.data.roundId) || r.roundId);
             var joinedGC = r && ((r.data && r.data.groupCode) || r.groupCode || code);
@@ -1290,6 +1312,9 @@ html,body{overflow-x:hidden}
               alert("合流に失敗しました: " + (r && r.error || "コードが無効です"));
             }
           }).catch(function (e) {
+            // v2.5.4: 失敗時のフラグ解除
+            _joinInProgress = false;
+            if (joinBtn) { joinBtn.disabled = false; joinBtn.textContent = "合流"; }
             console.warn("[GL] apiJoinRound (byCode) failed:", e);
             alert("合流エラー: " + e);
           });
