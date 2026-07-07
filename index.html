@@ -1039,22 +1039,36 @@ html,body{overflow-x:hidden}
         // 共通：招待モーダル表示（QR + 4桁コード 二刀流）
         var openInviteQR = function () {
           // state.roundId が空なら localStorage から復元を試みる
-          if (!state.roundId) {
-            try {
-              var saved = localStorage.getItem("gl_round_id_v1");
-              if (saved) {
-                state.roundId = saved;
-                console.log("[GL] roundId restored from localStorage:", saved);
-              }
-            } catch (e) {}
+          var savedRid = "";
+          try {
+            savedRid = localStorage.getItem("gl_round_id_v1") || "";
+          } catch (e) {}
+          if (!state.roundId && savedRid) {
+            state.roundId = savedRid;
+            console.log("[GL] roundId restored from localStorage:", savedRid);
           }
+
           // 作成中なら少し待ってリトライ
           if (!state.roundId && typeof window.__glRoundCreating === "function" && window.__glRoundCreating()) {
             alert("ラウンド作成中です。もう一度ご短く待ってから押してください");
             return;
           }
           if (!state.roundId) {
-            alert("先に「ラウンド開始」を押してラウンドを作成してください");
+            // ★ 診断情報付きアラート
+            var apiConfigured = (typeof window.glandApiIsConfigured === "function") ? window.glandApiIsConfigured() : false;
+            var apiExists = (typeof window.glandApi === "function");
+            var userId = (typeof window.glandGetUserId === "function") ? window.glandGetUserId() : "(未発行)";
+            var creating = (typeof window.__glRoundCreating === "function") ? window.__glRoundCreating() : "unknown";
+            var diag = "先に「ラウンド開始」を押してください\n\n";
+            diag += "─── 診断情報 v2.3.9 ───\n";
+            diag += "state.roundId: " + (state.roundId || "(空)") + "\n";
+            diag += "localStorage: " + (savedRid || "(空)") + "\n";
+            diag += "API接続: " + (apiConfigured ? "OK" : "NG") + "\n";
+            diag += "glandApi関数: " + (apiExists ? "あり" : "なし") + "\n";
+            diag += "userId: " + (userId || "(空)") + "\n";
+            diag += "作成中フラグ: " + creating + "\n";
+            diag += "最後のrgStart結果: " + ((typeof window.__glLastRoundStartResult === "function") ? window.__glLastRoundStartResult() : "(不明)");
+            alert(diag);
             return;
           }
 
@@ -1346,10 +1360,15 @@ html,body{overflow-x:hidden}
         // ラウンド開始・スコアカード
         // フラグ: ラウンド作成中かどうか
         var roundCreating = false;
+        var lastRoundStartResult = "(未実行)"; // 診断用
         on(byId("gm-start"), function () {
-          if (typeof window.glandApi === "function" && typeof window.glandApiIsConfigured === "function" && window.glandApiIsConfigured()) {
+          var hasApi = (typeof window.glandApi === "function");
+          var apiCfg = (typeof window.glandApiIsConfigured === "function") && window.glandApiIsConfigured();
+          console.log("[GL] gm-start pressed. hasApi=", hasApi, " apiCfg=", apiCfg);
+          if (hasApi && apiCfg) {
             var userId = (typeof window.glandGetUserId === "function") ? window.glandGetUserId() : "";
             roundCreating = true;
+            lastRoundStartResult = "送信中...";
             window.glandApi("apiStartRound", {
               ownerUserId: userId,
               hostName: (state.profile && state.profile.nickname) || ""
@@ -1359,20 +1378,29 @@ html,body{overflow-x:hidden}
                 state.roundId = newRoundId;
                 try { localStorage.setItem("gl_round_id_v1", newRoundId); } catch (e) {}
                 console.log("[GL] round created:", newRoundId);
+                lastRoundStartResult = "成功: " + newRoundId;
                 if (typeof refreshRoundMembers === "function") refreshRoundMembers();
               } else {
-                console.warn("[GL] apiStartRound failed:", r && (r.error || "unknown"));
+                console.warn("[GL] apiStartRound failed:", r);
+                lastRoundStartResult = "失敗: " + JSON.stringify(r || {}).substring(0, 200);
               }
               roundCreating = false;
             }).catch(function (e) {
               console.warn("[GL] apiStartRound exception:", e);
+              lastRoundStartResult = "例外: " + (e && e.message || String(e)).substring(0, 200);
               roundCreating = false;
             });
+          } else {
+            lastRoundStartResult = "API未接続 (hasApi=" + hasApi + " apiCfg=" + apiCfg + ")";
+            console.warn("[GL] apiStartRound skipped:", lastRoundStartResult);
           }
           showGolfSub("score");
         });
         // openInviteQR から参照できるよう window に公開
+        window.__glLastRoundStartResult = function () { return lastRoundStartResult; };
+        // openInviteQR から参照できるよう window に公開
         window.__glRoundCreating = function () { return roundCreating; };
+
 
         on(byId("gm-scorecard"), function () { showGolfSub("score"); });
 
