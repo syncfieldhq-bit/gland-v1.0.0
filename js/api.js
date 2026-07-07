@@ -113,12 +113,44 @@
    * ============================================================ */
   var USER_ID_KEY = 'gl_user_id_v1';
 
+  // v2.4.2: iOS PWA/Safari 間の localStorage 分離対策に、Cookieと localStorage の二重保存
+  function _readCookie(name) {
+    try {
+      var m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()\[\]\\\/\+^])/g, '\\$1') + '=([^;]*)'));
+      return m ? decodeURIComponent(m[1]) : '';
+    } catch (e) { return ''; }
+  }
+  function _writeCookie(name, value, days) {
+    try {
+      var d = new Date();
+      d.setTime(d.getTime() + ((days || 365) * 24 * 60 * 60 * 1000));
+      document.cookie = name + '=' + encodeURIComponent(value) + ';expires=' + d.toUTCString() + ';path=/;SameSite=Lax';
+    } catch (e) {}
+  }
+
   function getStoredUserId() {
-    try { return localStorage.getItem(USER_ID_KEY) || ''; } catch (e) { return ''; }
+    // localStorage → Cookie → sessionStorage の順で探す
+    var v = '';
+    try { v = localStorage.getItem(USER_ID_KEY) || ''; } catch (e) {}
+    if (!v) v = _readCookie(USER_ID_KEY);
+    if (!v) {
+      try { v = sessionStorage.getItem(USER_ID_KEY) || ''; } catch (e) {}
+    }
+    // 見つかった場所を全部に同期しておく（次回以降一致）
+    if (v) {
+      try { localStorage.setItem(USER_ID_KEY, v); } catch (e) {}
+      _writeCookie(USER_ID_KEY, v, 365);
+      try { sessionStorage.setItem(USER_ID_KEY, v); } catch (e) {}
+    }
+    return v;
   }
 
   function setStoredUserId(id) {
-    try { if (id) localStorage.setItem(USER_ID_KEY, id); } catch (e) {}
+    if (!id) return;
+    try { localStorage.setItem(USER_ID_KEY, id); } catch (e) {}
+    _writeCookie(USER_ID_KEY, id, 365);
+    try { sessionStorage.setItem(USER_ID_KEY, id); } catch (e) {}
+    console.log('[GL] userId stored (3-way):', id);
   }
 
   // g-land profile → v85 payload に変換

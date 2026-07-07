@@ -1059,13 +1059,26 @@ html,body{overflow-x:hidden}
             var apiExists = (typeof window.glandApi === "function");
             var userId = (typeof window.glandGetUserId === "function") ? window.glandGetUserId() : "(未発行)";
             var creating = (typeof window.__glRoundCreating === "function") ? window.__glRoundCreating() : "unknown";
+
+            // v2.4.2: localStorage / Cookie / sessionStorage 全て見る
+            var lsUid = "", ssUid = "", ckUid = "";
+            try { lsUid = localStorage.getItem("gl_user_id_v1") || ""; } catch (e) {}
+            try { ssUid = sessionStorage.getItem("gl_user_id_v1") || ""; } catch (e) {}
+            try {
+              var m = document.cookie.match(/(?:^|; )gl_user_id_v1=([^;]*)/);
+              ckUid = m ? decodeURIComponent(m[1]) : "";
+            } catch (e) {}
+
             var diag = "先に「ラウンド開始」を押してください\n\n";
-            diag += "─── 診断情報 v2.4.1 ───\n";
+            diag += "─── 診断情報 v2.4.2 ───\n";
             diag += "state.roundId: " + (state.roundId || "(空)") + "\n";
-            diag += "localStorage: " + (savedRid || "(空)") + "\n";
+            diag += "rid-localStorage: " + (savedRid || "(空)") + "\n";
             diag += "API接続: " + (apiConfigured ? "OK" : "NG") + "\n";
             diag += "glandApi関数: " + (apiExists ? "あり" : "なし") + "\n";
-            diag += "userId: " + (userId || "(空)") + "\n";
+            diag += "userId(glandGetUserId): " + (userId || "(空)") + "\n";
+            diag += "userId-localStorage: " + (lsUid || "(空)") + "\n";
+            diag += "userId-sessionStorage: " + (ssUid || "(空)") + "\n";
+            diag += "userId-cookie: " + (ckUid || "(空)") + "\n";
             diag += "作成中フラグ: " + creating + "\n";
             diag += "最後のrgStart結果: " + ((typeof window.__glLastRoundStartResult === "function") ? window.__glLastRoundStartResult() : "(不明)");
             alert(diag);
