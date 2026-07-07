@@ -56,13 +56,25 @@
 .gl-gate__version{font-size:12px;opacity:.6;}
 /* v2.3.2 名前登録ボタン */
 #name-guide-card:active{transform:scale(0.97);opacity:0.85}
-/* v2.3.3 Android スクロール不可対策 — 全ビューの下部余白を検査・拡張 */
+/* v2.3.4 Android/iPhone 下部フッター切れ防止 */
 html,body{overflow-x:hidden}
-/* ゴルフメニューの下部余白（ボトムナビ+アンドロイドジェスチャーバー分） */
-#view-golf-menu{padding-bottom:calc(80px + env(safe-area-inset-bottom,0px) + 48px) !important;min-height:100vh;min-height:100dvh;box-sizing:border-box;overflow-y:auto}
-#view-home,#view-mypage,#view-history,#view-round-detail,#view-summary-result{padding-bottom:calc(80px + env(safe-area-inset-bottom,0px) + 48px) !important;min-height:100dvh;box-sizing:border-box;overflow-y:auto}
+/* 外側ビューにも内側コンテナにも下部余白を強制する */
+#view-golf-menu,#view-home,#view-mypage,#view-history,#view-round-detail,#view-summary-result{
+  padding-bottom:calc(90px + env(safe-area-inset-bottom,0px) + 56px) !important;
+  min-height:100vh;min-height:100dvh;
+  box-sizing:border-box;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+/* 内側コンテナ（.gl-golfmenuなど）にも下部余白 */
+.gl-golfmenu,.gl-mypage,.gl-hub,.gl-history{
+  padding-bottom:calc(90px + env(safe-area-inset-bottom,0px) + 56px) !important;
+  box-sizing:border-box;
+}
 /* スコアコンテンツ（.gl-content）の下部余白を拡張 */
-.gl-content{padding-bottom:calc(90px + env(safe-area-inset-bottom,0px) + 56px) !important}
+.gl-content{padding-bottom:calc(100px + env(safe-area-inset-bottom,0px) + 64px) !important}
+/* 名前ガイドボタンを確実にタップ可能に */
+#name-guide-card{pointer-events:auto !important;position:relative;z-index:10}
 </style>
 
 </head>
@@ -781,6 +793,18 @@ html,body{overflow-x:hidden}
         if (!card) return;
         var needName = !state.profile || !state.profile.lastName || !state.profile.lastNameKana;
         card.style.display = needName ? "" : "none";
+        // v2.3.4: イベントハンドラを毎回強制バインド（他のバイントに先を越されてもここで必ず包み直す）
+        if (!card.dataset.hooked) {
+          card.dataset.hooked = "1";
+          var handler = function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log("[GL] name-guide-card tapped");
+            try { openProfileEditor(); } catch(err) { console.error(err); alert("名前登録を開けませんでした：" + err); }
+          };
+          card.addEventListener("click", handler);
+          card.addEventListener("touchend", handler);
+        }
       }
 
       // プロフィール編集モーダルを開く（現値反映してから）
