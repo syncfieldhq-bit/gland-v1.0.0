@@ -842,6 +842,16 @@ html,body{overflow-x:hidden}
           m.style.display = "none";
           return;
         }
+        // v2.6.1: PWA(スタンドアロンド・webapp)でない場合は名前登録モーダルを出さない
+        // → ブラウザで開いた際にインストール前に登録モーダルが出る問題を修正
+        // 例外: ?join= 付きのゲストはブラウザでも登録モーダルを表示（合流のため）
+        var isStandalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+                           (window.navigator.standalone === true);
+        var hasJoinParam = new URLSearchParams(location.search).has("join");
+        if (!isStandalone && !hasJoinParam) {
+          m.style.display = "none";
+          return;
+        }
         // プロフィール登録済みなら絶対に出さない
         var haveName = !!(state.profile && state.profile.lastName && state.profile.lastNameKana);
         // Cookieをチェック（iOS PWA localStorage分離対策）
@@ -1274,9 +1284,14 @@ html,body{overflow-x:hidden}
             if (joinBtn) { joinBtn.disabled = false; joinBtn.textContent = "合流"; }
           }, 15000);
 
+          // v2.6.1: 現在別ラウンドに参加中なら priorRoundId として送る（GAS側で自動離脱）
+          var priorRid = "";
+          if (state.roundId) priorRid = state.roundId;
+          else if (typeof window.__glReadTriple === "function") priorRid = window.__glReadTriple("gl_round_id_v1") || "";
           window.glandApi("apiJoinRound", {
             groupCode: code,
             userId: userId,
+            priorRoundId: priorRid,
             name: (state.profile && (state.profile.lastName || state.profile.nickname)) || "ゲスト"
           }).then(function (r) {
             // v2.5.4: 合流完了に伴いフラグ解除
@@ -2733,9 +2748,13 @@ function tryJoinPendingRound() {
     return;
   }
   
+  // v2.6.1: 別ラウンド参加中ならpriorRoundIdとして渡す
+  var priorRid = "";
+  if (state.roundId && state.roundId !== joinRoundId) priorRid = state.roundId;
   window.glandApi("apiJoinRound", {
     joinId: joinRoundId,
-    userId: userId
+    userId: userId,
+    priorRoundId: priorRid
   }).then(function (r) {
 
     var joined = r && ((r.data && r.data.roundId) || r.roundId);
