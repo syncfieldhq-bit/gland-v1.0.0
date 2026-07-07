@@ -1036,16 +1036,57 @@ html,body{overflow-x:hidden}
           var lineUrl = "https://line.me/R/msg/text/?" + encodeURIComponent(text);
           window.open(lineUrl, "_blank");
         };
+        // v2.5.0: ストレージ三重ヘルパー（localStorage + Cookie + sessionStorage）
+        function _readTriple(key) {
+          var v = "";
+          try { v = localStorage.getItem(key) || ""; } catch (e) {}
+          if (!v) {
+            try {
+              var m = document.cookie.match(new RegExp('(?:^|; )' + key.replace(/([.$?*|{}()\[\]\\\/\+^])/g, '\\$1') + '=([^;]*)'));
+              v = m ? decodeURIComponent(m[1]) : "";
+            } catch (e) {}
+          }
+          if (!v) {
+            try { v = sessionStorage.getItem(key) || ""; } catch (e) {}
+          }
+          if (v) {
+            // 三重同期
+            try { localStorage.setItem(key, v); } catch (e) {}
+            try {
+              var d = new Date();
+              d.setTime(d.getTime() + (365*24*60*60*1000));
+              document.cookie = key + "=" + encodeURIComponent(v) + ";expires=" + d.toUTCString() + ";path=/;SameSite=Lax";
+            } catch (e) {}
+            try { sessionStorage.setItem(key, v); } catch (e) {}
+          }
+          return v;
+        }
+        function _writeTriple(key, val) {
+          if (!val) return;
+          try { localStorage.setItem(key, val); } catch (e) {}
+          try {
+            var d = new Date();
+            d.setTime(d.getTime() + (365*24*60*60*1000));
+            document.cookie = key + "=" + encodeURIComponent(val) + ";expires=" + d.toUTCString() + ";path=/;SameSite=Lax";
+          } catch (e) {}
+          try { sessionStorage.setItem(key, val); } catch (e) {}
+        }
+        function _clearTriple(key) {
+          try { localStorage.removeItem(key); } catch (e) {}
+          try { document.cookie = key + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/"; } catch (e) {}
+          try { sessionStorage.removeItem(key); } catch (e) {}
+        }
+        window.__glReadTriple = _readTriple;
+        window.__glWriteTriple = _writeTriple;
+        window.__glClearTriple = _clearTriple;
+
         // 共通：招待モーダル表示（QR + 4桁コード 二刀流）
         var openInviteQR = function () {
-          // state.roundId が空なら localStorage から復元を試みる
-          var savedRid = "";
-          try {
-            savedRid = localStorage.getItem("gl_round_id_v1") || "";
-          } catch (e) {}
+          // v2.5.0: state.roundId が空なら三重ストレージから復元
+          var savedRid = _readTriple("gl_round_id_v1");
           if (!state.roundId && savedRid) {
             state.roundId = savedRid;
-            console.log("[GL] roundId restored from localStorage:", savedRid);
+            console.log("[GL] roundId restored (triple):", savedRid);
           }
 
           // 作成中なら少し待ってリトライ
@@ -1054,34 +1095,8 @@ html,body{overflow-x:hidden}
             return;
           }
           if (!state.roundId) {
-            // ★ 診断情報付きアラート
-            var apiConfigured = (typeof window.glandApiIsConfigured === "function") ? window.glandApiIsConfigured() : false;
-            var apiExists = (typeof window.glandApi === "function");
-            var userId = (typeof window.glandGetUserId === "function") ? window.glandGetUserId() : "(未発行)";
-            var creating = (typeof window.__glRoundCreating === "function") ? window.__glRoundCreating() : "unknown";
-
-            // v2.4.2: localStorage / Cookie / sessionStorage 全て見る
-            var lsUid = "", ssUid = "", ckUid = "";
-            try { lsUid = localStorage.getItem("gl_user_id_v1") || ""; } catch (e) {}
-            try { ssUid = sessionStorage.getItem("gl_user_id_v1") || ""; } catch (e) {}
-            try {
-              var m = document.cookie.match(/(?:^|; )gl_user_id_v1=([^;]*)/);
-              ckUid = m ? decodeURIComponent(m[1]) : "";
-            } catch (e) {}
-
-            var diag = "先に「ラウンド開始」を押してください\n\n";
-            diag += "─── 診断情報 v2.4.6 ───\n";
-            diag += "state.roundId: " + (state.roundId || "(空)") + "\n";
-            diag += "rid-localStorage: " + (savedRid || "(空)") + "\n";
-            diag += "API接続: " + (apiConfigured ? "OK" : "NG") + "\n";
-            diag += "glandApi関数: " + (apiExists ? "あり" : "なし") + "\n";
-            diag += "userId(glandGetUserId): " + (userId || "(空)") + "\n";
-            diag += "userId-localStorage: " + (lsUid || "(空)") + "\n";
-            diag += "userId-sessionStorage: " + (ssUid || "(空)") + "\n";
-            diag += "userId-cookie: " + (ckUid || "(空)") + "\n";
-            diag += "作成中フラグ: " + creating + "\n";
-            diag += "最後のrgStart結果: " + ((typeof window.__glLastRoundStartResult === "function") ? window.__glLastRoundStartResult() : "(不明)");
-            alert(diag);
+            // v2.5.0: シンプルなメッセージ（診断アラート廃止）
+            alert("先に「ラウンド開始」ボタンを押してください");
             return;
           }
 
@@ -1208,12 +1223,31 @@ html,body{overflow-x:hidden}
             userId: userId,
             name: (state.profile && (state.profile.lastName || state.profile.nickname)) || "ゲスト"
           }).then(function (r) {
-            var joined = r && r.data && r.data.roundId;
+            // v2.5.0: レスポンスのroundIdを完全抽出
+            var joined = r && ((r.data && r.data.roundId) || r.roundId);
+            var joinedGC = r && ((r.data && r.data.groupCode) || r.groupCode || code);
             if (r && r.ok && joined) {
               state.roundId = joined;
-              try { localStorage.setItem("gl_round_id_v1", joined); } catch (e) {}
-              alert("ラウンドに合流しました！");
-              if (typeof refreshRoundMembers === "function") refreshRoundMembers();
+              state.groupCode = joinedGC;
+              // v2.5.0: 三重ストレージ保存
+              if (typeof window.__glWriteTriple === "function") {
+                window.__glWriteTriple("gl_round_id_v1", joined);
+                if (joinedGC) window.__glWriteTriple("gl_group_code_v1", joinedGC);
+              } else {
+                try { localStorage.setItem("gl_round_id_v1", joined); } catch (e) {}
+              }
+              if (!r.alreadyJoined) alert("ラウンドに合流しました！");
+              // v2.5.0: レスポンスのmembersを即時反映
+              var respMembers = r && ((r.data && r.data.members) || r.members);
+              if (respMembers && respMembers.length && typeof applyMembersToState === "function") {
+                applyMembersToState(respMembers);
+              }
+              if (typeof refreshRoundMembers === "function") {
+                refreshRoundMembers();
+                setTimeout(function () { refreshRoundMembers(); }, 1000);
+                setTimeout(function () { refreshRoundMembers(); }, 3000);
+              }
+              if (typeof startPeerPolling === "function") { try { startPeerPolling(); } catch (e) {} }
               showGolfSub("score");
             } else {
               alert("合流に失敗しました: " + (r && r.error || "コードが無効です"));
@@ -1272,7 +1306,7 @@ html,body{overflow-x:hidden}
 
             // v2.4.1: 同期の診断付きsaveProfile
             var syncResult = "(未実行)";
-            // v2.4.5: 登録成功アラートをサイレント化。失敗時のみアラート。
+            // v2.5.0: 登録フロー・アラート完全廃止。サイレントに実行。
             var hasSyncFn = (typeof window.glandSyncProfile === "function");
             try {
               saveProfile();
@@ -1280,18 +1314,14 @@ html,body{overflow-x:hidden}
                 window.glandSyncProfile(state.profile).then(function (r) {
                   if (r && r.ok) {
                     console.log("[GL] profile synced", r.userId);
-                    // 成功はアラートしない（静かに閉じる）
-                    // ゲスト合流フローなら自動合流をキック
                     if (state.pendingJoinRoundId && typeof waitForUserIdAndJoin === "function") {
                       setTimeout(function () { waitForUserIdAndJoin(); }, 200);
                     }
                   } else {
                     console.warn("[GL] profile sync failed:", r);
-                    alert("登録に失敗しました\n" + ((r && r.error) || "不明なエラー"));
                   }
                 }).catch(function (err) {
                   console.warn("[GL] profile sync exception:", err);
-                  alert("登録に失敗しました\n" + (err && err.message || String(err)));
                 });
               }
             } catch(err) {
@@ -1473,11 +1503,23 @@ html,body{overflow-x:hidden}
               var newGroupCode = r && ((r.data && r.data.groupCode) || r.groupCode || "");
               if (r && r.ok && newRoundId) {
                 state.roundId = newRoundId;
-                state.groupCode = newGroupCode; // v2.4.3: apiStartRoundのレスポンスから直接保存
-                try { localStorage.setItem("gl_round_id_v1", newRoundId); } catch (e) {}
-                try { if (newGroupCode) localStorage.setItem("gl_group_code_v1", newGroupCode); } catch (e) {}
-                console.log("[GL] round created:", newRoundId, " groupCode:", newGroupCode);
-                lastRoundStartResult = "成功: " + newRoundId + " / GC:" + (newGroupCode || "なし");
+                state.groupCode = newGroupCode;
+                // v2.5.0: 三重ストレージ保存
+                if (typeof window.__glWriteTriple === "function") {
+                  window.__glWriteTriple("gl_round_id_v1", newRoundId);
+                  if (newGroupCode) window.__glWriteTriple("gl_group_code_v1", newGroupCode);
+                } else {
+                  try { localStorage.setItem("gl_round_id_v1", newRoundId); } catch (e) {}
+                  try { if (newGroupCode) localStorage.setItem("gl_group_code_v1", newGroupCode); } catch (e) {}
+                }
+                console.log("[GL] round " + (r.reused ? "reused" : "created") + ":", newRoundId, " groupCode:", newGroupCode);
+                lastRoundStartResult = (r.reused ? "再利用: " : "成功: ") + newRoundId;
+                // メンバー一覧もレスポンスに含まれるら即既適用
+                var respMembers = r && ((r.data && r.data.members) || r.members);
+                if (respMembers && respMembers.length && typeof applyMembersToState === "function") {
+                  applyMembersToState(respMembers);
+                  try { if (typeof renderAll === "function") renderAll(); } catch (e) {}
+                }
                 if (typeof refreshRoundMembers === "function") refreshRoundMembers();
               } else {
                 console.warn("[GL] apiStartRound failed:", r);
@@ -2434,13 +2476,23 @@ function tryJoinPendingRound() {
   }).then(function (r) {
 
     var joined = r && ((r.data && r.data.roundId) || r.roundId);
+    var joinedGC = r && ((r.data && r.data.groupCode) || r.groupCode || "");
     if (r && r.ok && joined) {
       state.roundId = joined;
+      state.groupCode = joinedGC;
       state.pendingJoinRoundId = "";
-      try { localStorage.setItem("gl_round_id_v1", joined); } catch (e) {}
+      // v2.5.0: 三重ストレージ保存
+      if (typeof window.__glWriteTriple === "function") {
+        window.__glWriteTriple("gl_round_id_v1", joined);
+        if (joinedGC) window.__glWriteTriple("gl_group_code_v1", joinedGC);
+      } else {
+        try { localStorage.setItem("gl_round_id_v1", joined); } catch (e) {}
+      }
       try { localStorage.removeItem("gl_pending_join_v1"); } catch (e) {}
-      console.log("[GL] joined round:", joined);
-      alert("ラウンドに合流しました！");
+      console.log("[GL] joined round:", joined, r.alreadyJoined ? "(already)" : "");
+      if (!r.alreadyJoined) {
+        alert("ラウンドに合流しました！");
+      }
       state.golfSubView = "score";
       if (typeof switchNav === "function") {
         switchNav("golf");
