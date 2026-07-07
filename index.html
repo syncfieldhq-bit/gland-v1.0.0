@@ -319,8 +319,8 @@ html,body{overflow-x:hidden}
           <button class="gl-golfmenu__sub" id="gm-app-qr">📱 アプリを配る</button>
           <button class="gl-golfmenu__sub gl-golfmenu__sub--line" id="gm-line">💬 LINEで送る</button>
         </div>
-        <!-- v2.3.5 フッター回避スペーサー -->
-        <div style="height:calc(120px + env(safe-area-inset-bottom,0px));width:100%" aria-hidden="true"></div>
+        <!-- v2.3.6 フッター回避スペーサー（大幅拡張） -->
+        <div style="height:calc(200px + env(safe-area-inset-bottom,0px));width:100%" aria-hidden="true"></div>
       </div>
 
       <!-- コース選択モーダル -->
@@ -786,12 +786,41 @@ html,body{overflow-x:hidden}
       }
 
       // 名前登録ガイドカードをプロフィール未登録時のみ表示
-      // v2.3.5: 初回名前登録モーダルの表示制御
+      // v2.3.6: 初回名前登録モーダルの表示制御
       function renderNameGuide() {
         var m = document.getElementById("first-name-modal");
         if (!m) return;
-        var needName = !state.profile || !state.profile.lastName || !state.profile.lastNameKana;
-        m.style.display = needName ? "flex" : "none";
+        // プロフィール登録済みなら絶対に出さない
+        var haveName = !!(state.profile && state.profile.lastName && state.profile.lastNameKana);
+        // Cookieをチェック（iOS PWA localStorage分離対策）
+        if (!haveName) {
+          try {
+            var ck = document.cookie || "";
+            var mCookie = ck.match(/gl_profile_lastName=([^;]+)/);
+            var mkCookie = ck.match(/gl_profile_lastNameKana=([^;]+)/);
+            if (mCookie && mkCookie) {
+              var ln = decodeURIComponent(mCookie[1]);
+              var lnk = decodeURIComponent(mkCookie[1]);
+              if (ln && lnk) {
+                state.profile.lastName = ln;
+                state.profile.lastNameKana = lnk;
+                haveName = true;
+                try { localStorage.setItem(PROFILE_KEY, JSON.stringify(state.profile)); } catch(_){}
+                if (state.players && state.players[0]) { state.players[0].name = ln; }
+                try { renderInputTable && renderInputTable(); } catch(_){}
+              }
+            }
+          } catch(_) {}
+        }
+        // dismissフラグチェック（一度でも閉じたら自動表示しない）
+        var dismissed = false;
+        try { if (sessionStorage.getItem("gl_fn_dismissed_v1") === "1") dismissed = true; } catch(_){}
+        if (!dismissed) {
+          try {
+            if (/gl_fn_dismissed_v1=1/.test(document.cookie || "")) dismissed = true;
+          } catch(_) {}
+        }
+        m.style.display = (!haveName && !dismissed) ? "flex" : "none";
       }
 
       // プロフィール編集モーダルを開く（現値反映してから） — マイページからの編集用
@@ -1071,8 +1100,39 @@ html,body{overflow-x:hidden}
           });
         });
 
-        // v2.3.5: 初回名前登録モーダルの登録ボタン
-        (function bindFirstNameSubmit(){
+        // v2.3.6: 初回名前登録モーダルの全ボタンバインド
+        (function bindFirstNameModal(){
+          // Cookie保存ヘルパー (iOS PWA ストレージ分離対策)
+          function setCookie(name, value, days){
+            try {
+              var d = new Date();
+              d.setTime(d.getTime() + (days*24*60*60*1000));
+              document.cookie = name + "=" + encodeURIComponent(value) + ";expires=" + d.toUTCString() + ";path=/;SameSite=Lax";
+            } catch(_) {}
+          }
+          function closeModalHard(){
+            var m = document.getElementById("first-name-modal");
+            if (m) m.style.display = "none";
+            // すでに閉じたことをマークし、以降の自動表示を抑制
+            try { sessionStorage.setItem("gl_fn_dismissed_v1", "1"); } catch(_){}
+            setCookie("gl_fn_dismissed_v1", "1", 365);
+          }
+
+          // ✕ボタン
+          var closeBtn = document.getElementById("fn-close");
+          if (closeBtn) {
+            var closeHandler = function(e){ if(e){e.preventDefault();e.stopPropagation();} closeModalHard(); };
+            closeBtn.addEventListener("click", closeHandler);
+            closeBtn.addEventListener("touchend", closeHandler);
+          }
+          // スキップボタン
+          var skipBtn = document.getElementById("fn-skip");
+          if (skipBtn) {
+            var skipHandler = function(e){ if(e){e.preventDefault();e.stopPropagation();} closeModalHard(); };
+            skipBtn.addEventListener("click", skipHandler);
+            skipBtn.addEventListener("touchend", skipHandler);
+          }
+          // 登録ボタン
           var btn = document.getElementById("fn-submit");
           if (!btn) return;
           var handler = function(e){
@@ -1086,14 +1146,18 @@ html,body{overflow-x:hidden}
             state.profile.lastName = ln;
             state.profile.lastNameKana = lnk;
             try { saveProfile(); } catch(err) { console.warn(err); }
+            // Cookieにも保存（iOS PWA ストレージ分離対策）
+            setCookie("gl_profile_lastName", ln, 365);
+            setCookie("gl_profile_lastNameKana", lnk, 365);
+            setCookie("gl_fn_dismissed_v1", "1", 365);
+            // sessionStorageにも
+            try { sessionStorage.setItem("gl_fn_dismissed_v1", "1"); } catch(_){}
             // スコアテーブルの自分の名前も更新
             if (state.players && state.players[0]) { state.players[0].name = ln; }
             try { renderProfile && renderProfile(); } catch(_){}
             try { renderHome && renderHome(); } catch(_){}
             try { renderInputTable(); } catch(_){}
-            // モーダルを閉じる
-            var m = document.getElementById("first-name-modal");
-            if (m) m.style.display = "none";
+            closeModalHard();
           };
           btn.addEventListener("click", handler);
           btn.addEventListener("touchend", handler);
@@ -2521,10 +2585,11 @@ function tryJoinPendingRound() {
     }
   </script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
-    <!-- ==== 名前登録初回モーダル（fixed overlay / 必須モーダル） v2.3.5 ==== -->
+    <!-- ==== 名前登録初回モーダル（fixed overlay） v2.3.6 — ✕ボタン・STG二重保護 ==== -->
     <div id="first-name-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.65);z-index:99999;align-items:center;justify-content:center;padding:20px;box-sizing:border-box">
-      <div style="background:white;border-radius:16px;padding:24px 20px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.4)">
-        <div style="font-size:22px;font-weight:bold;text-align:center;color:#059669;margin-bottom:8px">👋 ようこそ G-LAND へ</div>
+      <div style="background:white;border-radius:16px;padding:24px 20px 20px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.4);position:relative">
+        <button type="button" id="fn-close" aria-label="閉じる" style="position:absolute;top:8px;right:8px;width:36px;height:36px;border:none;background:#f1f5f9;border-radius:50%;font-size:20px;color:#475569;cursor:pointer;-webkit-tap-highlight-color:rgba(0,0,0,0.1);touch-action:manipulation;line-height:1;padding:0">✕</button>
+        <div style="font-size:22px;font-weight:bold;text-align:center;color:#059669;margin-bottom:8px;margin-top:6px">👋 ようこそ G-LAND へ</div>
         <div style="font-size:14px;text-align:center;color:#475569;margin-bottom:20px;line-height:1.5">スコア履歴を保存するために<br>最初にお名前を登録してください</div>
         <div style="display:flex;flex-direction:column;gap:10px">
           <div>
@@ -2537,6 +2602,7 @@ function tryJoinPendingRound() {
           </div>
         </div>
         <button type="button" id="fn-submit" style="width:100%;margin-top:20px;padding:14px;background:linear-gradient(135deg,#10b981,#059669);color:white;border:none;border-radius:10px;font-size:17px;font-weight:bold;cursor:pointer;box-shadow:0 4px 12px rgba(16,185,129,0.35);-webkit-tap-highlight-color:rgba(255,255,255,0.3);touch-action:manipulation">登録してはじめる</button>
+        <button type="button" id="fn-skip" style="width:100%;margin-top:8px;padding:10px;background:transparent;color:#64748b;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;cursor:pointer;-webkit-tap-highlight-color:rgba(0,0,0,0.1);touch-action:manipulation">後で登録する（スキップ）</button>
         <div style="font-size:11px;color:#94a3b8;text-align:center;margin-top:12px">この登録は初回のみです。後でマイページから変更できます。</div>
       </div>
     </div>
