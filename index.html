@@ -319,6 +319,8 @@ html,body{overflow-x:hidden}
           <button class="gl-golfmenu__sub" id="gm-app-qr">📱 アプリを配る</button>
           <button class="gl-golfmenu__sub gl-golfmenu__sub--line" id="gm-line">💬 LINEで送る</button>
         </div>
+        <!-- v2.3.5 フッター回避スペーサー -->
+        <div style="height:calc(120px + env(safe-area-inset-bottom,0px));width:100%" aria-hidden="true"></div>
       </div>
 
       <!-- コース選択モーダル -->
@@ -434,10 +436,6 @@ html,body{overflow-x:hidden}
     <div class="gl-content">
       <!-- 【入力タブ】 -->
       <div id="view-input">
-        <!-- 名前登録ボタン（プロフィール未登録時のみ表示） -->
-        <button type="button" id="name-guide-card" onclick="if(window.openProfileEditor)window.openProfileEditor();" style="display:none;margin:4px 10px;padding:6px 10px;background:linear-gradient(135deg,#10b981,#059669);color:white;border:none;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.12);cursor:pointer;box-sizing:border-box;width:calc(100% - 20px);font-family:inherit;-webkit-tap-highlight-color:rgba(255,255,255,0.3);touch-action:manipulation">
-          <div style="font-size:13px;font-weight:bold;text-align:center;line-height:1.2;color:white">👇 タップしてお名前を入力</div>
-        </button>
         <div id="scoretable-input-container"></div>
         <div id="inputpanel-container"></div>
       </div>
@@ -788,26 +786,15 @@ html,body{overflow-x:hidden}
       }
 
       // 名前登録ガイドカードをプロフィール未登録時のみ表示
+      // v2.3.5: 初回名前登録モーダルの表示制御
       function renderNameGuide() {
-        var card = document.getElementById("name-guide-card");
-        if (!card) return;
+        var m = document.getElementById("first-name-modal");
+        if (!m) return;
         var needName = !state.profile || !state.profile.lastName || !state.profile.lastNameKana;
-        card.style.display = needName ? "" : "none";
-        // v2.3.4: イベントハンドラを毎回強制バインド（他のバイントに先を越されてもここで必ず包み直す）
-        if (!card.dataset.hooked) {
-          card.dataset.hooked = "1";
-          var handler = function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log("[GL] name-guide-card tapped");
-            try { openProfileEditor(); } catch(err) { console.error(err); alert("名前登録を開けませんでした：" + err); }
-          };
-          card.addEventListener("click", handler);
-          card.addEventListener("touchend", handler);
-        }
+        m.style.display = needName ? "flex" : "none";
       }
 
-      // プロフィール編集モーダルを開く（現値反映してから）
+      // プロフィール編集モーダルを開く（現値反映してから） — マイページからの編集用
       function openProfileEditor() {
         try {
           byId("pf-nickname").value = (state.profile && state.profile.nickname) || "";
@@ -818,7 +805,6 @@ html,body{overflow-x:hidden}
         } catch(_) {}
         openModal("profile");
       }
-      // グローバル公開（onclick属性から呼べるように）
       window.openProfileEditor = openProfileEditor;
 
       function renderSummaryTable() {
@@ -1085,10 +1071,33 @@ html,body{overflow-x:hidden}
           });
         });
 
-        // 名前登録ガイドカードタップでプロフィール編集モーダル
-        on(byId("name-guide-card"), function () {
-          if (typeof openProfileEditor === "function") openProfileEditor();
-        });
+        // v2.3.5: 初回名前登録モーダルの登録ボタン
+        (function bindFirstNameSubmit(){
+          var btn = document.getElementById("fn-submit");
+          if (!btn) return;
+          var handler = function(e){
+            if (e) { e.preventDefault(); e.stopPropagation(); }
+            var ln = (document.getElementById("fn-lastname").value || "").trim();
+            var lnk = (document.getElementById("fn-lastnamekana").value || "").trim();
+            if (!ln || !lnk) {
+              alert("苗字（漢字）と苗字（ひらがな）の両方を入力してください");
+              return;
+            }
+            state.profile.lastName = ln;
+            state.profile.lastNameKana = lnk;
+            try { saveProfile(); } catch(err) { console.warn(err); }
+            // スコアテーブルの自分の名前も更新
+            if (state.players && state.players[0]) { state.players[0].name = ln; }
+            try { renderProfile && renderProfile(); } catch(_){}
+            try { renderHome && renderHome(); } catch(_){}
+            try { renderInputTable(); } catch(_){}
+            // モーダルを閉じる
+            var m = document.getElementById("first-name-modal");
+            if (m) m.style.display = "none";
+          };
+          btn.addEventListener("click", handler);
+          btn.addEventListener("touchend", handler);
+        })();
 
         // 共通: アプリ配布QR (ルートURLを共有)
         var getAppUrl = function () {
@@ -2366,6 +2375,8 @@ function tryJoinPendingRound() {
 
                 // v2.2.2 (2026-07): 強制オンボーディング廃止、常にホーム画面からスタート
         switchNav("home");
+        // v2.3.5: 初回名前登録モーダルをプロフィール未登録時に強制表示
+        try { renderNameGuide(); } catch(_) {}
 
         // 後半スタート時刻: 未確定時は1分毎に現在時刻を自動更新（リアルタイム表示）
         // ローカル処理のみ・ネットワーク通信なし・他ポーリングと独立
@@ -2510,6 +2521,25 @@ function tryJoinPendingRound() {
     }
   </script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+    <!-- ==== 名前登録初回モーダル（fixed overlay / 必須モーダル） v2.3.5 ==== -->
+    <div id="first-name-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.65);z-index:99999;align-items:center;justify-content:center;padding:20px;box-sizing:border-box">
+      <div style="background:white;border-radius:16px;padding:24px 20px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.4)">
+        <div style="font-size:22px;font-weight:bold;text-align:center;color:#059669;margin-bottom:8px">👋 ようこそ G-LAND へ</div>
+        <div style="font-size:14px;text-align:center;color:#475569;margin-bottom:20px;line-height:1.5">スコア履歴を保存するために<br>最初にお名前を登録してください</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div>
+            <label style="display:block;font-size:13px;color:#64748b;margin-bottom:4px;font-weight:600">苗字（漢字）<span style="color:#dc2626">*</span></label>
+            <input id="fn-lastname" type="text" placeholder="例：佐藤" maxlength="20" style="width:100%;font-size:18px;padding:10px 12px;border:2px solid #cbd5e1;border-radius:8px;box-sizing:border-box">
+          </div>
+          <div>
+            <label style="display:block;font-size:13px;color:#64748b;margin-bottom:4px;font-weight:600">苗字（ひらがな）<span style="color:#dc2626">*</span></label>
+            <input id="fn-lastnamekana" type="text" placeholder="例：さとう" maxlength="30" style="width:100%;font-size:18px;padding:10px 12px;border:2px solid #cbd5e1;border-radius:8px;box-sizing:border-box">
+          </div>
+        </div>
+        <button type="button" id="fn-submit" style="width:100%;margin-top:20px;padding:14px;background:linear-gradient(135deg,#10b981,#059669);color:white;border:none;border-radius:10px;font-size:17px;font-weight:bold;cursor:pointer;box-shadow:0 4px 12px rgba(16,185,129,0.35);-webkit-tap-highlight-color:rgba(255,255,255,0.3);touch-action:manipulation">登録してはじめる</button>
+        <div style="font-size:11px;color:#94a3b8;text-align:center;margin-top:12px">この登録は初回のみです。後でマイページから変更できます。</div>
+      </div>
+    </div>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
