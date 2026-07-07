@@ -1070,7 +1070,7 @@ html,body{overflow-x:hidden}
             } catch (e) {}
 
             var diag = "先に「ラウンド開始」を押してください\n\n";
-            diag += "─── 診断情報 v2.4.5 ───\n";
+            diag += "─── 診断情報 v2.4.6 ───\n";
             diag += "state.roundId: " + (state.roundId || "(空)") + "\n";
             diag += "rid-localStorage: " + (savedRid || "(空)") + "\n";
             diag += "API接続: " + (apiConfigured ? "OK" : "NG") + "\n";
@@ -2441,13 +2441,27 @@ function tryJoinPendingRound() {
       try { localStorage.removeItem("gl_pending_join_v1"); } catch (e) {}
       console.log("[GL] joined round:", joined);
       alert("ラウンドに合流しました！");
-      // 合流成功後は、スコアカード画面へ自動遷移する
-      // (switchNav が全ビューをクリーンにしてから golf-score を表示するので張り付きは起きない)
       state.golfSubView = "score";
       if (typeof switchNav === "function") {
         switchNav("golf");
       }
-      if (typeof refreshRoundMembers === "function") refreshRoundMembers();
+      // v2.4.6: apiJoinRoundのレスポンスの members を即座に適用（ホストも含む）
+      var immediateMembers = r && ((r.data && r.data.members) || r.members);
+      if (immediateMembers && immediateMembers.length && typeof applyMembersToState === "function") {
+        applyMembersToState(immediateMembers);
+        try { if (typeof renderAll === "function") renderAll(); } catch (e) {}
+        console.log("[GL] immediate members applied:", immediateMembers.length);
+      }
+      // v2.4.6: バックアップとして refreshRoundMembers を何度かリトライ
+      if (typeof refreshRoundMembers === "function") {
+        refreshRoundMembers();
+        setTimeout(function () { refreshRoundMembers(); }, 1000);
+        setTimeout(function () { refreshRoundMembers(); }, 3000);
+      }
+      // v2.4.6: ゲスト側でもポーリングを強制開始（他のメンバーのスコアを取りに行く）
+      if (typeof startPeerPolling === "function") {
+        try { startPeerPolling(); } catch (e) { console.warn("[GL] startPeerPolling failed:", e); }
+      }
 
     } else {
       console.warn("[GL] apiJoinRound failed:", r && (r.error || "unknown"));
