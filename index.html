@@ -2216,6 +2216,94 @@ html,body{overflow-x:hidden}
       // ================================================
       // Phase 5 STEP C: 自分のスコアをサーバに送信
       // ================================================
+      // ================================================
+      // v2.6.0: 楽観的UI + リトライキュー付きスコア送信
+      // ------------------------------------------------
+      //   画面は即反映（入力と同時）、GAS送信はバックグラウンドで並列
+      //   失敗したら自動リトライ（3回まで、指数バックオフ）
+      //   ユーザーは送信完了を待たない
+      // ================================================
+      var _scoreQueue = []; // {payload, attempts, nextAt}[]
+      var _scoreQueueBusy = false;
+
+      function _enqueueScoreSend(payload) {
+        // 同じホールの古いキュー項目は削除して最新のみに
+        _scoreQueue = _scoreQueue.filter(function (q) {
+          return !(q.payload.roundId === payload.roundId &&
+                   q.payload.userId === payload.userId &&
+                   q.payload.holeNo === payload.holeNo);
+        });
+        _scoreQueue.push({ payload: payload, attempts: 0, nextAt: Date.now() });
+        _processScoreQueue();
+      }
+
+      function _processScoreQueue() {
+        if (_scoreQueueBusy) return;
+        if (!_scoreQueue.length) return;
+
+        var now = Date.now();
+        var item = null;
+        for (var i = 0; i < _scoreQueue.length; i++) {
+          if (_scoreQueue[i].nextAt <= now) { item = _scoreQueue[i]; break; }
+        }
+        if (!item) {
+          // 待ち項目あり → 最短の待ち時間で再スケジュール
+          var soonest = _scoreQueue.reduce(function (min, q) {
+            return Math.min(min, q.nextAt);
+          }, Infinity);
+          setTimeout(_processScoreQueue, Math.max(50, soonest - now));
+          return;
+        }
+
+        _scoreQueueBusy = true;
+        item.attempts++;
+        window.glandApi("apiSavePlayerScore", item.payload).then(function (r) {
+          _scoreQueueBusy = false;
+          if (r && r.ok) {
+            // 成功 → キューから削除
+            var idx = _scoreQueue.indexOf(item);
+            if (idx >= 0) _scoreQueue.splice(idx, 1);
+            console.log("[GL] score sync OK: H" + item.payload.holeNo,
+              "stroke=" + item.payload.stroke, "putt=" + item.payload.putt,
+              "(remaining queue: " + _scoreQueue.length + ")");
+          } else {
+            // 失敗 → 指数バックオフでリトライ
+            if (item.attempts < 3) {
+              var delay = Math.pow(2, item.attempts) * 1000; // 2s, 4s, 8s
+              item.nextAt = Date.now() + delay;
+              console.warn("[GL] score sync retry " + item.attempts + " in " + delay + "ms:", r && r.error);
+            } else {
+              // 3回失敗 → ちゃんと保存しておくが、キューからは削除
+              var idx2 = _scoreQueue.indexOf(item);
+              if (idx2 >= 0) _scoreQueue.splice(idx2, 1);
+              console.error("[GL] score sync FAILED after 3 retries: H" + item.payload.holeNo, r);
+              // localStorageに失敗ログも残しておく（後日手動同期可能）
+              try {
+                var failed = JSON.parse(localStorage.getItem("gl_score_failed_v1") || "[]");
+                failed.push({ payload: item.payload, failedAt: Date.now() });
+                if (failed.length > 100) failed.shift();
+                localStorage.setItem("gl_score_failed_v1", JSON.stringify(failed));
+              } catch (e) {}
+            }
+          }
+          // 次のキュー項目を処理
+          setTimeout(_processScoreQueue, 100);
+        }).catch(function (e) {
+          _scoreQueueBusy = false;
+          // ネットワークエラー → リトライ
+          if (item.attempts < 3) {
+            var delay = Math.pow(2, item.attempts) * 1000;
+            item.nextAt = Date.now() + delay;
+            console.warn("[GL] score sync network err retry " + item.attempts + ":", e);
+          } else {
+            var idx3 = _scoreQueue.indexOf(item);
+            if (idx3 >= 0) _scoreQueue.splice(idx3, 1);
+            console.error("[GL] score sync FAILED (network) after 3 retries:", e);
+          }
+          setTimeout(_processScoreQueue, 500);
+        });
+      }
+
       function savePlayerScoreToServer(hole) {
         if (typeof window.glandApi !== "function") return;
         if (typeof window.glandApiIsConfigured !== "function" || !window.glandApiIsConfigured()) return;
@@ -2231,16 +2319,20 @@ html,body{overflow-x:hidden}
           stroke: hole.strokes,
           putt: hole.putts
         };
-        window.glandApi("apiSavePlayerScore", payload).then(function (r) {
-          if (r && r.ok) {
-            console.log("[GL] score saved: H" + hole.holeNumber, "stroke=" + hole.strokes, "putt=" + hole.putts);
-          } else {
-            console.warn("[GL] apiSavePlayerScore failed:", r && (r.error || "unknown"));
-          }
-        }).catch(function (e) {
-          console.warn("[GL] apiSavePlayerScore exception:", e);
-        });
+        // 楽観的UI: キューに入れるだけで即完了と見なす
+        _enqueueScoreSend(payload);
       }
+
+      // ネットワーク復帰時にキューをフラッシュ
+      window.addEventListener("online", function () {
+        console.log("[GL] network back online, flushing score queue (" + _scoreQueue.length + " items)");
+        _scoreQueue.forEach(function (q) { q.nextAt = Date.now(); });
+        _processScoreQueue();
+      });
+      window.__glFlushScoreQueue = function () {
+        _scoreQueue.forEach(function (q) { q.nextAt = Date.now(); });
+        _processScoreQueue();
+      };
 
       // ================================================
       // Phase 5 STEP B: 他人のスコアを25秒毎にポーリング取得
@@ -2255,6 +2347,9 @@ html,body{overflow-x:hidden}
         if (peerPollTimer) return;
         console.log("[GL] peer polling started (interval=" + PEER_POLL_MS + "ms)");
         fetchPeerScores();
+        // v2.6.0: 初期同期を高速化（2秒後・5秒後にも卸じて別端末のスコアを早めに取得）
+        setTimeout(fetchPeerScores, 2000);
+        setTimeout(fetchPeerScores, 5000);
         peerPollTimer = setInterval(fetchPeerScores, PEER_POLL_MS);
         // v2.5.3: キープアライブも一緒に開始
         startGasKeepAlive();
@@ -2281,39 +2376,89 @@ html,body{overflow-x:hidden}
       }
       window.__glStartKeepAlive = startGasKeepAlive;
 
+      // v2.6.0: fetchPeerScores の並列化とキャッシュ化
+      //   ・ apiListScores + apiListRoundMembers を並列実行
+      //   ・ 結果をlocalStorageにキャッシュ → 次回ポーリング待ちの間も即表示
+      //   ・ 失敗してもキャッシュを見てフォールバック
+      var PEER_SCORES_CACHE_KEY_PREFIX = "gl_peer_scores_";
+
       function fetchPeerScores() {
         if (typeof window.glandApi !== "function") return;
         if (typeof window.glandApiIsConfigured !== "function" || !window.glandApiIsConfigured()) return;
         if (!state.roundId) return;
-        // v2.5.3: 重複ポーリング削除！メンバー一覧は10回に1回（2分30秒に1回）だけ
+
         peerPollCount++;
-        if (peerPollCount % 10 === 1) {
-          if (typeof refreshRoundMembers === "function") refreshRoundMembers();
+        var needMembers = (peerPollCount % 10 === 1); // 10回に1回はメンバーも
+
+        // v2.6.0: キャッシュを先に適用（即座に画面更新）
+        try {
+          var cacheKey = PEER_SCORES_CACHE_KEY_PREFIX + state.roundId;
+          var cachedRaw = localStorage.getItem(cacheKey);
+          if (cachedRaw && !state._peerCacheApplied) {
+            var cached = JSON.parse(cachedRaw);
+            if (cached && cached.scores && cached.scores.length) {
+              applyPeerScoresToState(cached.scores);
+              if (state.currentTab === "summary" && state.currentNav === "golf" && state.golfSubView === "score") {
+                renderSummaryTable();
+              }
+              state._peerCacheApplied = true;
+              console.log("[GL] peer scores applied from cache:", cached.scores.length);
+            }
+          }
+        } catch (e) {}
+
+        // 並列fetch（Promise.allで同時実行）
+        var promises = [
+          window.glandApi("apiListScores", { roundId: state.roundId })
+        ];
+        if (needMembers) {
+          promises.push(window.glandApi("apiListRoundMembers", { roundId: state.roundId }));
         }
-        window.glandApi("apiListScores", { roundId: state.roundId }).then(function (r) {
-          if (!r || !r.ok) {
-            console.warn("[GL] apiListScores failed:", r && r.error);
-            return;
-          }
-                    // v85 GAS は「playerScores」を返す（「scores」は常に空配列）
-          // 空配列は truthy なので、length で判定して確実に playerScores へフォールバック
-          var scores = [];
-          if (r.data) {
-            if (r.data.playerScores && r.data.playerScores.length) scores = r.data.playerScores;
-            else if (r.data.scores && r.data.scores.length) scores = r.data.scores;
-          }
-          if (!scores.length) {
-            if (r.playerScores && r.playerScores.length) scores = r.playerScores;
-            else if (r.scores && r.scores.length) scores = r.scores;
+
+        Promise.all(promises).then(function (results) {
+          var scoresResp = results[0];
+          var membersResp = results[1] || null;
+
+          // スコア適用
+          if (scoresResp && scoresResp.ok) {
+            var scores = [];
+            if (scoresResp.data) {
+              if (scoresResp.data.playerScores && scoresResp.data.playerScores.length) scores = scoresResp.data.playerScores;
+              else if (scoresResp.data.scores && scoresResp.data.scores.length) scores = scoresResp.data.scores;
+            }
+            if (!scores.length) {
+              if (scoresResp.playerScores && scoresResp.playerScores.length) scores = scoresResp.playerScores;
+              else if (scoresResp.scores && scoresResp.scores.length) scores = scoresResp.scores;
+            }
+            applyPeerScoresToState(scores);
+            if (state.currentTab === "summary" && state.currentNav === "golf" && state.golfSubView === "score") {
+              renderSummaryTable();
+            }
+            // キャッシュに保存
+            try {
+              localStorage.setItem(
+                PEER_SCORES_CACHE_KEY_PREFIX + state.roundId,
+                JSON.stringify({ scores: scores, cachedAt: Date.now() })
+              );
+            } catch (e) {}
+            console.log("[GL] peer scores refreshed:", scores.length);
+          } else {
+            console.warn("[GL] apiListScores failed:", scoresResp && scoresResp.error);
           }
 
-          applyPeerScoresToState(scores);
-          if (state.currentTab === "summary" && state.currentNav === "golf" && state.golfSubView === "score") {
-            renderSummaryTable();
+          // メンバー適用
+          if (membersResp && membersResp.ok) {
+            var members = (membersResp.data && membersResp.data.members) || membersResp.members;
+            if (members && members.length && typeof applyMembersToState === "function") {
+              applyMembersToState(members);
+              if (state.currentNav === "golf" && state.golfSubView === "score" && typeof renderAll === "function") {
+                renderAll();
+              }
+              console.log("[GL] members refreshed (parallel):", members.length);
+            }
           }
-          console.log("[GL] peer scores refreshed:", scores.length);
         }).catch(function (e) {
-          console.warn("[GL] apiListScores exception:", e);
+          console.warn("[GL] fetchPeerScores parallel exception:", e);
         });
       }
 
@@ -2820,6 +2965,13 @@ function tryJoinPendingRound() {
             state.players[i].holes = cloneHoles(HOLES);
           }
           // ラウンド関連 state を初期化
+          // v2.6.0: peerキャッシュもクリア
+          try {
+            if (state.roundId) {
+              localStorage.removeItem("gl_peer_scores_" + state.roundId);
+            }
+          } catch (e) {}
+          state._peerCacheApplied = false;
           state.roundId = "";
           state.groupCode = ""; // v2.4.3: groupCodeもクリア
           try { localStorage.removeItem("gl_group_code_v1"); } catch (e) {}
