@@ -111,13 +111,14 @@ html,body{overflow-x:hidden}
         <li><span style="display:inline-block;width:28px;height:28px;background:#059669;color:#fff;border-radius:50%;text-align:center;line-height:28px;font-weight:bold;margin-right:8px">5</span><b>Safariを閉じる</b></li>
         <li><span style="display:inline-block;width:28px;height:28px;background:#059669;color:#fff;border-radius:50%;text-align:center;line-height:28px;font-weight:bold;margin-right:8px">6</span>ホーム画面の <b style="color:#059669">G-LANDアイコン</b> をタップ ⛳</li>
       </ol>
-      <div class="gl-gate__note" style="background:#fef3c7;border-left:4px solid #f59e0b;padding:14px;border-radius:8px;margin-top:16px;font-size:14px">
-        ⚠️ <b>Chromeでは追加できません</b><br>
+      <div class="gl-gate__note" style="background:#ffffff;border-left:4px solid #dc2626;padding:14px;border-radius:8px;margin-top:16px;font-size:15px;color:#1e293b;line-height:1.6">
+        <b style="color:#dc2626">⚠️ Chromeでは追加できません</b><br>
         必ず <b style="color:#0284c7">Safari</b> で開いてください
       </div>
-      <div style="margin-top:20px;padding:14px;background:#dcfce7;border-radius:10px;font-size:14px;color:#166534;line-height:1.5">
-        💡 <b>登録画面はアイコンから起動した後に出ます</b><br>
-        いまは <b>インストールだけ</b> に集中してください
+      <div style="margin-top:20px;padding:16px;background:#ffffff;border:2px solid #fbbf24;border-radius:12px;font-size:16px;color:#1e293b;line-height:1.6;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
+        <div style="font-size:18px;font-weight:bold;color:#b45309;margin-bottom:6px">💡 ポイント</div>
+        <b style="color:#0f172a">登録画面は<span style="color:#dc2626">アイコンから起動した後</span>に出ます</b><br>
+        <span style="color:#475569">いまは<b style="color:#0284c7"> インストールだけ </b>に集中してください</span>
       </div>
     </div>
 
@@ -159,13 +160,14 @@ html,body{overflow-x:hidden}
       <button id="gate-android-install" class="gl-gate__btn gl-gate__btn--primary" style="display:none;padding:16px 24px;font-size:17px;font-weight:bold;margin-top:8px">
         📥 アプリをインストール
       </button>
-      <div id="gate-android-manual" class="gl-gate__note" style="background:#fef3c7;border-left:4px solid #f59e0b;padding:14px;border-radius:8px;margin-top:16px;font-size:14px">
-        💡 自動ボタンが出ない場合：<br>
-        右上 <b>⠇ メニュー</b> → <b>「アプリをインストール」</b> または <b>「ホーム画面に追加」</b>
+      <div id="gate-android-manual" class="gl-gate__note" style="background:#ffffff;border-left:4px solid #f59e0b;padding:14px;border-radius:8px;margin-top:16px;font-size:15px;color:#1e293b;line-height:1.6">
+        <b style="color:#b45309">💡 自動ボタンが出ない場合</b><br>
+        右上 <b style="color:#0f172a">⠇ メニュー</b> → <b style="color:#059669">「アプリをインストール」</b> または <b style="color:#059669">「ホーム画面に追加」</b>
       </div>
-      <div style="margin-top:20px;padding:14px;background:#dcfce7;border-radius:10px;font-size:14px;color:#166534;line-height:1.5">
-        💡 <b>登録画面はアイコンから起動した後に出ます</b><br>
-        いまは <b>インストールだけ</b> に集中してください
+      <div style="margin-top:20px;padding:16px;background:#ffffff;border:2px solid #fbbf24;border-radius:12px;font-size:16px;color:#1e293b;line-height:1.6;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
+        <div style="font-size:18px;font-weight:bold;color:#b45309;margin-bottom:6px">💡 ポイント</div>
+        <b style="color:#0f172a">登録画面は<span style="color:#dc2626">アイコンから起動した後</span>に出ます</b><br>
+        <span style="color:#475569">いまは<b style="color:#059669"> インストールだけ </b>に集中してください</span>
       </div>
     </div>
 
@@ -1115,20 +1117,22 @@ html,body{overflow-x:hidden}
 
         // 共通：招待モーダル表示（QR + 4桁コード 二刀流）
         var openInviteQR = function () {
-          // v2.5.0: state.roundId が空なら三重ストレージから復元
+          // v2.5.2: state.roundId が空なら三重ストレージから復元
           var savedRid = _readTriple("gl_round_id_v1");
           if (!state.roundId && savedRid) {
             state.roundId = savedRid;
+            state.groupCode = state.groupCode || _readTriple("gl_group_code_v1");
             console.log("[GL] roundId restored (triple):", savedRid);
           }
 
-          // 作成中なら少し待ってリトライ
+          // v2.5.2: ラウンド作成中の不具合対策
+          // - roundIdがあるなら作成中フラグを無視（既にできてる）
+          // - roundIdなし + 作成中フラグ の場合のみ待ちメッセージ
           if (!state.roundId && typeof window.__glRoundCreating === "function" && window.__glRoundCreating()) {
-            alert("ラウンド作成中です。もう一度ご短く待ってから押してください");
+            alert("ラウンド作成中です。もうしばらくお待ちください");
             return;
           }
           if (!state.roundId) {
-            // v2.5.0: シンプルなメッセージ（診断アラート廃止）
             alert("先に「ラウンド開始」ボタンを押してください");
             return;
           }
@@ -1524,14 +1528,36 @@ html,body{overflow-x:hidden}
           var hasApi = (typeof window.glandApi === "function");
           var apiCfg = (typeof window.glandApiIsConfigured === "function") && window.glandApiIsConfigured();
           console.log("[GL] gm-start pressed. hasApi=", hasApi, " apiCfg=", apiCfg);
+
+          // v2.5.2: 既にstate.roundIdがあれば即すぐスコア画面へ（重複作成防止）
+          //         localStorage → Cookie → sessionStorage の順で復元
+          if (!state.roundId && typeof window.__glReadTriple === "function") {
+            var restoredRid = window.__glReadTriple("gl_round_id_v1");
+            if (restoredRid) {
+              state.roundId = restoredRid;
+              state.groupCode = window.__glReadTriple("gl_group_code_v1") || state.groupCode;
+              console.log("[GL] roundId restored on gm-start:", restoredRid);
+            }
+          }
+
           if (hasApi && apiCfg) {
             var userId = (typeof window.glandGetUserId === "function") ? window.glandGetUserId() : "";
             roundCreating = true;
             lastRoundStartResult = "送信中...";
-            window.glandApi("apiStartRound", {
+            // v2.5.2: 20秒でタイムアウトしてフラグを強制解除（スタック防止）
+            var _roundCreatingTimeout = setTimeout(function() {
+              if (roundCreating) {
+                console.warn("[GL] roundCreating flag timed out after 20s");
+                roundCreating = false;
+              }
+            }, 20000);
+            // v2.5.2: existingRoundId を渡すとGAS側でDB全走査なしに再利用される
+            var startPayload = {
               ownerUserId: userId,
               hostName: (state.profile && state.profile.nickname) || ""
-            }).then(function (r) {
+            };
+            if (state.roundId) startPayload.existingRoundId = state.roundId;
+            window.glandApi("apiStartRound", startPayload).then(function (r) {
               var newRoundId = r && ((r.data && r.data.roundId) || r.roundId);
               var newGroupCode = r && ((r.data && r.data.groupCode) || r.groupCode || "");
               if (r && r.ok && newRoundId) {
@@ -1558,10 +1584,12 @@ html,body{overflow-x:hidden}
                 console.warn("[GL] apiStartRound failed:", r);
                 lastRoundStartResult = "失敗: " + JSON.stringify(r || {}).substring(0, 200);
               }
+              clearTimeout(_roundCreatingTimeout);
               roundCreating = false;
             }).catch(function (e) {
               console.warn("[GL] apiStartRound exception:", e);
               lastRoundStartResult = "例外: " + (e && e.message || String(e)).substring(0, 200);
+              clearTimeout(_roundCreatingTimeout);
               roundCreating = false;
             });
           } else {
@@ -2192,7 +2220,7 @@ html,body{overflow-x:hidden}
       // ================================================
       // Phase 5 STEP B: 他人のスコアを25秒毎にポーリング取得
       // ================================================
-      var PEER_POLL_MS = 25000;
+      var PEER_POLL_MS = 15000; // v2.5.2: 25秒 → 15秒 に短縮
       var peerPollTimer = null;
 
       function startPeerPolling() {
