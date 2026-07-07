@@ -122,14 +122,16 @@
   }
 
   // g-land profile → v85 payload に変換
+  // v2.4.0: GAS側の必須を「姓 + 姓カナ」の2項目のみに緩和したので、
+          //     他項目は空文字で送信OKになった
   function toV85Payload(profile) {
     var p = profile || {};
     return {
-      nickname:   p.nickname || '',
-      familyName: p.lastName || '',
+      nickname:   p.nickname     || '',
+      familyName: p.lastName     || '',
       familyKana: p.lastNameKana || '',
-      firstName:  p.firstName || ' ',       // v85 必須なので空なら半角スペース
-      firstKana:  p.firstNameKana || ' '    // 同上
+      firstName:  p.firstName    || '',
+      firstKana:  p.firstNameKana|| ''
     };
   }
 

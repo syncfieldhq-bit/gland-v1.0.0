@@ -1060,7 +1060,7 @@ html,body{overflow-x:hidden}
             var userId = (typeof window.glandGetUserId === "function") ? window.glandGetUserId() : "(未発行)";
             var creating = (typeof window.__glRoundCreating === "function") ? window.__glRoundCreating() : "unknown";
             var diag = "先に「ラウンド開始」を押してください\n\n";
-            diag += "─── 診断情報 v2.3.9 ───\n";
+            diag += "─── 診断情報 v2.4.0 ───\n";
             diag += "state.roundId: " + (state.roundId || "(空)") + "\n";
             diag += "localStorage: " + (savedRid || "(空)") + "\n";
             diag += "API接続: " + (apiConfigured ? "OK" : "NG") + "\n";
@@ -1362,6 +1362,34 @@ html,body{overflow-x:hidden}
         var roundCreating = false;
         var lastRoundStartResult = "(未実行)"; // 診断用
         on(byId("gm-start"), function () {
+          // v2.4.0: ラウンド開始前に5項目完全を確認
+          // 初回（2項目だけ）の人は初回ラウンドは進めるように（下の分岐で判定）
+          if (isProfileMinimum() && !isProfileFull()) {
+            // 初回ラウンド完了後の2回目以降（=一度でもラウンドを保存したことがある）は5項目必須
+            var hasHistory = false;
+            try {
+              var rawH = localStorage.getItem("gl_history_v1");
+              if (rawH) {
+                var arr = JSON.parse(rawH);
+                hasHistory = Array.isArray(arr) && arr.length > 0;
+              }
+            } catch (e) {}
+            if (hasHistory) {
+              alert("ラウンドを開始するには、マイページでプロフィールを完成させてください\n\n不足している項目:\n" +
+                (!state.profile.firstName    ? "・名前（漢字）\n" : "") +
+                (!state.profile.firstNameKana? "・名前（かな）\n" : "") +
+                (!state.profile.nickname    ? "・ニックネーム\n" : ""));
+              // マイページに導導
+              if (typeof showView === "function") { try { showView("mypage"); } catch (e) {} }
+              return;
+            }
+            // 初回ならそのまま進む
+          }
+          if (!isProfileMinimum()) {
+            alert("初回登録が完了していません。苗字と苗字カナを入力してください");
+            return;
+          }
+
           var hasApi = (typeof window.glandApi === "function");
           var apiCfg = (typeof window.glandApiIsConfigured === "function") && window.glandApiIsConfigured();
           console.log("[GL] gm-start pressed. hasApi=", hasApi, " apiCfg=", apiCfg);
@@ -1565,7 +1593,19 @@ html,body{overflow-x:hidden}
         });
 
         // ラウンド保存モーダル
-                on(byId("save-round-ok"), function () {
+        on(byId("save-round-ok"), function () {
+          // v2.4.0: 初回保存前にヒストリ件数を見ておく（後で初回保存判定に使う）
+          var wasFirstSave = false;
+          try {
+            var rawH = localStorage.getItem("gl_history_v1");
+            if (!rawH) {
+              wasFirstSave = true;
+            } else {
+              var arr = JSON.parse(rawH);
+              wasFirstSave = !Array.isArray(arr) || arr.length === 0;
+            }
+          } catch (e) { wasFirstSave = true; }
+
           var saved = saveRoundToHistory();
           closeModal("save-round");
           if (saved) {
@@ -1574,6 +1614,23 @@ html,body{overflow-x:hidden}
             clearCurrentRoundAfterSave();
             showViewOnly("view-summary-result");
             renderSummaryResult(saved);
+
+            // v2.4.0: 初回保存 & プロフィール未完全なら次回のための案内を出す
+            if (wasFirstSave && !isProfileFull()) {
+              setTimeout(function () {
+                var missing = [];
+                if (!state.profile.firstName)     missing.push("・名前（漢字）");
+                if (!state.profile.firstNameKana) missing.push("・名前（かな）");
+                if (!state.profile.nickname)      missing.push("・ニックネーム");
+                var msg = "🎉 初ラウンドの保存が完了しました！\n\n";
+                msg += "─── 次回のラウンド前にお願い ───\n";
+                msg += "次のラウンドを開始するには、マイページで\n";
+                msg += "以下の項目を入力してください:\n\n";
+                msg += missing.join("\n") + "\n\n";
+                msg += "（揃っていないと次回以降ラウンドを開始できません）";
+                alert(msg);
+              }, 500);
+            }
           } else {
             alert("保存に失敗しました");
           }
@@ -2157,7 +2214,21 @@ html,body{overflow-x:hidden}
         }
       }
 
+      // v2.4.0: 2段階プロフィールチェック
+      //   isProfileMinimum() = 初回登録の最低要件（苗字 + 苗字カナ）
+      //   isProfileFull()    = ラウンド開始に必要な5項目完全
+      //   isProfileComplete()= 後方互換（既存呼び出しはすべて「Full」と同義にする）
+      function isProfileMinimum() {
+        var p = state.profile;
+        return !!(p.lastName && p.lastNameKana);
+      }
+      function isProfileFull() {
+        var p = state.profile;
+        return !!(p.nickname && p.lastName && p.lastNameKana && p.firstName && p.firstNameKana);
+      }
       function isProfileComplete() {
+        // 既存呼び出し側（ラウンド開始チェックなど）のため、
+        // 既存ロジック（nickname+lastName+lastNameKana）を維持
         var p = state.profile;
         return !!(p.nickname && p.lastName && p.lastNameKana);
       }
