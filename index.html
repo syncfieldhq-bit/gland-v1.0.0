@@ -1060,7 +1060,7 @@ html,body{overflow-x:hidden}
             var userId = (typeof window.glandGetUserId === "function") ? window.glandGetUserId() : "(未発行)";
             var creating = (typeof window.__glRoundCreating === "function") ? window.__glRoundCreating() : "unknown";
             var diag = "先に「ラウンド開始」を押してください\n\n";
-            diag += "─── 診断情報 v2.4.0 ───\n";
+            diag += "─── 診断情報 v2.4.1 ───\n";
             diag += "state.roundId: " + (state.roundId || "(空)") + "\n";
             diag += "localStorage: " + (savedRid || "(空)") + "\n";
             diag += "API接続: " + (apiConfigured ? "OK" : "NG") + "\n";
@@ -1239,7 +1239,35 @@ html,body{overflow-x:hidden}
             }
             state.profile.lastName = ln;
             state.profile.lastNameKana = lnk;
-            try { saveProfile(); } catch(err) { console.warn(err); }
+
+            // v2.4.1: 同期の診断付きsaveProfile
+            var syncResult = "(未実行)";
+            var hasSyncFn = (typeof window.glandSyncProfile === "function");
+            try {
+              saveProfile();
+              if (hasSyncFn) {
+                // 同期の結果待ちはしないが、制御は後でログに出す
+                window.glandSyncProfile(state.profile).then(function (r) {
+                  var msg;
+                  if (r && r.ok) {
+                    msg = "✅ 登録成功\n\nuserId: " + (r.userId || "?") + "\n" + (r.created ? "(新規作成)" : "(更新)");
+                    console.log("[GL] profile synced", r.userId);
+                  } else {
+                    msg = "⚠️ 登録失敗\n\n" + JSON.stringify(r || {}).substring(0, 300);
+                    console.warn("[GL] profile sync failed:", r);
+                  }
+                  alert(msg);
+                }).catch(function (err) {
+                  alert("⚠️ 登録例外\n\n" + (err && err.message || String(err)));
+                });
+              } else {
+                alert("⚠️ window.glandSyncProfileが存在しません\napi.jsが読み込まれていない可能性があります");
+              }
+            } catch(err) {
+              console.warn(err);
+              alert("⚠️ saveProfile例外: " + (err && err.message || String(err)));
+            }
+
             // Cookieにも保存（iOS PWA ストレージ分離対策）
             setCookie("gl_profile_lastName", ln, 365);
             setCookie("gl_profile_lastNameKana", lnk, 365);

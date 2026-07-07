@@ -122,8 +122,7 @@
   }
 
   // g-land profile → v85 payload に変換
-  // v2.4.0: GAS側の必須を「姓 + 姓カナ」の2項目のみに緩和したので、
-          //     他項目は空文字で送信OKになった
+  // v2.4.1: GAS側の必須を「姓+姓カナ」の2項目のみに緩和したので、他項目は空文字OK
   function toV85Payload(profile) {
     var p = profile || {};
     return {
