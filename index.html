@@ -54,6 +54,9 @@
 .gl-gate__btn--primary:active{transform:scale(.98);}
 .gl-gate__footer{margin-top:24px;text-align:center;}
 .gl-gate__version{font-size:12px;opacity:.6;}
+/* v2.3 名前登録ガイドカードパルスアニメ */
+@keyframes nameGuidePulse{0%,100%{transform:scale(1);box-shadow:0 4px 12px rgba(16,185,129,0.3)}50%{transform:scale(1.03);box-shadow:0 6px 20px rgba(16,185,129,0.6)}}
+#name-guide-card:active{transform:scale(0.97)!important}
 </style>
 
 </head>
@@ -278,6 +281,16 @@
         <!-- ラウンド開始 -->
         <button class="gl-golfmenu__start" id="gm-start">▶ ラウンド開始</button>
 
+        <!-- 4桁コードで合流 -->
+        <div class="gl-golfmenu__section" style="margin-top:14px;padding:14px;background:#f0f9ff;border:2px solid #38bdf8;border-radius:12px">
+          <div class="gl-golfmenu__label" style="font-size:16px;font-weight:bold;color:#0369a1">👥 招待コードで合流</div>
+          <div style="font-size:13px;color:#475569;margin:6px 0 10px">ホストから聞いた4桁コードを入力</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input id="gm-join-code" type="text" inputmode="text" autocapitalize="characters" maxlength="4" placeholder="ABCD" style="flex:1;font-size:28px;text-align:center;letter-spacing:8px;padding:12px;border:2px solid #cbd5e1;border-radius:10px;text-transform:uppercase;font-weight:bold">
+            <button class="gl-golfmenu__sub" id="gm-join" style="padding:14px 20px;font-size:16px;background:#0284c7;color:white;font-weight:bold">合流</button>
+          </div>
+        </div>
+
         <!-- スコアカード / 履歴 -->
         <div class="gl-golfmenu__row">
           <button class="gl-golfmenu__sub" id="gm-scorecard">📋 スコアカード</button>
@@ -343,8 +356,8 @@
         <div class="gl-modal__panel">
           <div class="gl-modal__title">プロフィール編集</div>
           <div class="gl-formgrid">
-            <label class="gl-formgrid__label">ニックネーム<span class="gl-formgrid__req">*</span></label>
-            <input class="gl-formgrid__input" id="pf-nickname" type="text" placeholder="例: たろう" maxlength="20">
+            <label class="gl-formgrid__label">ニックネーム<span class="gl-formgrid__opt" style="color:#94a3b8;font-size:12px">(任意)</span></label>
+            <input class="gl-formgrid__input" id="pf-nickname" type="text" placeholder="例: たろう（任意）" maxlength="20">
             <label class="gl-formgrid__label">苗字（漢字）<span class="gl-formgrid__req">*</span></label>
             <input class="gl-formgrid__input" id="pf-lastname" type="text" placeholder="例: 山田" maxlength="20">
             <label class="gl-formgrid__label">苗字（かな）<span class="gl-formgrid__req">*</span></label>
@@ -404,6 +417,11 @@
     <div class="gl-content">
       <!-- 【入力タブ】 -->
       <div id="view-input">
+        <!-- 名前登録ガイド（プロフィール未登録時のみ表示） -->
+        <div id="name-guide-card" style="display:none;margin:10px;padding:16px;background:linear-gradient(135deg,#10b981,#059669);color:white;border-radius:14px;box-shadow:0 4px 12px rgba(0,0,0,0.15);cursor:pointer;animation:nameGuidePulse 2s ease-in-out infinite">
+          <div style="font-size:22px;font-weight:bold;text-align:center;line-height:1.4">👇 ここをタップ<br>お名前を入力してください</div>
+          <div style="font-size:14px;text-align:center;margin-top:6px;opacity:0.95">スコア履歴の永続保存に必要です</div>
+        </div>
         <div id="scoretable-input-container"></div>
         <div id="inputpanel-container"></div>
       </div>
@@ -548,9 +566,25 @@
         <div class="gl-modal__title">🏆 ラウンド完了！</div>
         <div class="gl-saveround__hint">18H まで入力しました。<br>このラウンドを履歴に保存しますか？</div>
         <div class="gl-saveround__preview" id="save-round-preview"></div>
+        <div id="save-round-profile-hint" style="display:none;margin:12px 0;padding:12px;background:#fef3c7;border-left:4px solid #f59e0b;border-radius:8px;font-size:14px;color:#78350f">💡 プロフィールを登録すると、スコア履歴を永続保存できます。マイページから登録できます。</div>
         <div class="gl-modal__actions">
           <button class="gl-modal__btn gl-modal__btn--ghost" data-close="save-round">キャンセル</button>
           <button class="gl-modal__btn gl-modal__btn--primary" id="save-round-ok">💾 保存して終了</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==== 招待コード表示モーダル (4桁) ==== -->
+    <div id="invite-code-modal" class="gl-modal" style="display:none">
+      <div class="gl-modal__backdrop" data-close="invite-code"></div>
+      <div class="gl-modal__panel" style="text-align:center">
+        <div class="gl-modal__title">👥 ラウンドに招待</div>
+        <div style="font-size:15px;color:#475569;margin:8px 0 16px">同伴者にこの4桁コードを伝えてください</div>
+        <div id="invite-code-display" style="font-size:64px;font-weight:900;letter-spacing:16px;color:#0284c7;background:#f0f9ff;padding:24px;border-radius:16px;border:3px dashed #38bdf8;margin:10px 0;font-family:monospace">----</div>
+        <div style="font-size:12px;color:#94a3b8;margin-top:8px">有効期限: 10分間</div>
+        <div class="gl-modal__actions" style="margin-top:20px">
+          <button class="gl-modal__btn gl-modal__btn--ghost" data-close="invite-code">閉じる</button>
+          <button class="gl-modal__btn gl-modal__btn--primary" id="invite-code-copy">📋 コピー</button>
         </div>
       </div>
     </div>
@@ -704,9 +738,57 @@
               renderAll();
             }
           });
+          // パッチ⑤: スコアテーブル内の「あなた」セルにタップでプロフィール編集を開く
+          try {
+            var nameCells = c.querySelectorAll(".gl-scoretable__name, [data-player-name], .player-name");
+            for (var ni = 0; ni < nameCells.length; ni++) {
+              (function(cell){
+                cell.style.cursor = "pointer";
+                cell.addEventListener("click", function(ev){
+                  ev.stopPropagation();
+                  openProfileEditor();
+                });
+              })(nameCells[ni]);
+            }
+            // フォールバック: 最初の行をクリックでも反応
+            var firstRow = c.querySelector("tr, .row, [role='row']");
+            if (firstRow && !firstRow.dataset.nameHooked) {
+              firstRow.dataset.nameHooked = "1";
+              firstRow.addEventListener("click", function(ev){
+                // スコアセル（数字）を除き、名前領域のみ反応
+                var t = ev.target;
+                if (t && (t.classList && (t.classList.contains("score") || t.classList.contains("gl-scoretable__cell")))) return;
+                if (!state.profile || !state.profile.lastName) {
+                  openProfileEditor();
+                }
+              });
+            }
+          } catch(_) {}
+          // 名前登録ガイドカードの表示制御
+          renderNameGuide();
         } catch (e) {
           showError("入力タブテーブル: " + e.message);
         }
+      }
+
+      // 名前登録ガイドカードをプロフィール未登録時のみ表示
+      function renderNameGuide() {
+        var card = document.getElementById("name-guide-card");
+        if (!card) return;
+        var needName = !state.profile || !state.profile.lastName || !state.profile.lastNameKana;
+        card.style.display = needName ? "" : "none";
+      }
+
+      // プロフィール編集モーダルを開く（現値反映してから）
+      function openProfileEditor() {
+        try {
+          byId("pf-nickname").value = (state.profile && state.profile.nickname) || "";
+          byId("pf-lastname").value = (state.profile && state.profile.lastName) || "";
+          byId("pf-lastnamekana").value = (state.profile && state.profile.lastNameKana) || "";
+          byId("pf-firstname").value = (state.profile && state.profile.firstName) || "";
+          byId("pf-firstnamekana").value = (state.profile && state.profile.firstNameKana) || "";
+        } catch(_) {}
+        openModal("profile");
       }
 
       function renderSummaryTable() {
@@ -892,15 +974,91 @@
           var lineUrl = "https://line.me/R/msg/text/?" + encodeURIComponent(text);
           window.open(lineUrl, "_blank");
         };
-        // 共通：招待QR（Phase 3: roundId が無ければラウンド未作成として警告）
+        // 共通：招待コード表示（4桁）
         var openInviteQR = function () {
-          var url = getInviteUrl();
-          if (!url) {
+          if (!state.roundId) {
             alert("先に「ラウンド開始」を押してラウンドを作成してください");
             return;
           }
-          QRModal.open(url, "ラウンドに招待");
+          // GASからgroupCodeを取得
+          if (typeof window.glandApi === "function" && typeof window.glandApiIsConfigured === "function" && window.glandApiIsConfigured()) {
+            window.glandApi("apiGetRound", { roundId: state.roundId }).then(function (r) {
+              var code = r && r.data && r.data.groupCode;
+              if (!code) {
+                alert("招待コードを取得できませんでした");
+                return;
+              }
+              var disp = document.getElementById("invite-code-display");
+              if (disp) disp.textContent = String(code).toUpperCase();
+              openModal("invite-code");
+            }).catch(function (e) {
+              console.warn("[GL] apiGetRound failed:", e);
+              alert("招待コードの取得に失敗しました");
+            });
+          } else {
+            alert("サーバ未接続です");
+          }
         };
+
+        // 招待コードコピー
+        on(byId("invite-code-copy"), function () {
+          var disp = document.getElementById("invite-code-display");
+          var code = disp ? disp.textContent : "";
+          if (code && code !== "----") {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(code).then(function(){
+                alert("招待コード " + code + " をコピーしました");
+              }).catch(function(){
+                alert("招待コード: " + code);
+              });
+            } else {
+              alert("招待コード: " + code);
+            }
+          }
+        });
+
+        // 4桁コードで合流
+        on(byId("gm-join"), function () {
+          var input = document.getElementById("gm-join-code");
+          var code = (input && input.value || "").trim().toUpperCase();
+          if (!code || code.length !== 4) {
+            alert("4桁の招待コードを入力してください");
+            return;
+          }
+          if (typeof window.glandApi !== "function" || !window.glandApiIsConfigured || !window.glandApiIsConfigured()) {
+            alert("サーバ未接続です");
+            return;
+          }
+          var userId = (typeof window.glandGetUserId === "function") ? window.glandGetUserId() : "";
+          if (!userId) {
+            alert("ユーザーIDが未発行です。名前を登録してから再度お試しください");
+            return;
+          }
+          window.glandApi("apiJoinRound", {
+            groupCode: code,
+            userId: userId,
+            name: (state.profile && (state.profile.lastName || state.profile.nickname)) || "ゲスト"
+          }).then(function (r) {
+            var joined = r && r.data && r.data.roundId;
+            if (r && r.ok && joined) {
+              state.roundId = joined;
+              try { localStorage.setItem("gl_round_id_v1", joined); } catch (e) {}
+              alert("ラウンドに合流しました！");
+              if (typeof refreshRoundMembers === "function") refreshRoundMembers();
+              showGolfSub("score");
+            } else {
+              alert("合流に失敗しました: " + (r && r.error || "コードが無効です"));
+            }
+          }).catch(function (e) {
+            console.warn("[GL] apiJoinRound (byCode) failed:", e);
+            alert("合流エラー: " + e);
+          });
+        });
+
+        // 名前登録ガイドカードタップでプロフィール編集モーダル
+        on(byId("name-guide-card"), function () {
+          if (typeof openProfileEditor === "function") openProfileEditor();
+        });
 
         // 共通: アプリ配布QR (ルートURLを共有)
         var getAppUrl = function () {
@@ -1092,8 +1250,9 @@
           var nick = (byId("pf-nickname").value || "").trim();
           var ln = (byId("pf-lastname").value || "").trim();
           var lnk = (byId("pf-lastnamekana").value || "").trim();
-          if (!nick || !ln || !lnk) {
-            alert("ニックネーム・苗字（漢字）・苗字（かな）は必須です");
+          // v2.3: 苗字（漢字）と苗字（かな）だけ必須。ニックネームは任意。
+          if (!ln || !lnk) {
+            alert("苗字（漢字）と苗字（かな）は必須です");
             return;
           }
           state.profile.nickname = nick;
@@ -1102,8 +1261,14 @@
           state.profile.firstName = (byId("pf-firstname").value || "").trim();
           state.profile.firstNameKana = (byId("pf-firstnamekana").value || "").trim();
           saveProfile();
+          // スコアテーブルの自分の名前も更新
+          if (state.players && state.players[0]) {
+            state.players[0].name = ln;
+          }
           renderProfile();
           renderHome();
+          try { renderInputTable(); } catch(_) {}
+          try { renderNameGuide(); } catch(_) {}
           closeModal("profile");
         });
 
@@ -1237,6 +1402,12 @@
             '<span class="gl-saveround__total__diff ' + (diff > 0 ? "plus" : diff < 0 ? "minus" : "even") + '">' +
             (diff > 0 ? "+" + diff : diff === 0 ? "E" : diff) + '</span></div>' +
             '<div class="gl-saveround__oi">OUT ' + out + ' ・ IN ' + inS + '</div>';
+        }
+        // パッチ⑦: プロフィール未登録時は登録案内を表示
+        var hint = byId("save-round-profile-hint");
+        if (hint) {
+          var needName = !state.profile || !state.profile.lastName || !state.profile.lastNameKana;
+          hint.style.display = needName ? "" : "none";
         }
         openModal("save-round");
       }
