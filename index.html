@@ -1682,13 +1682,18 @@
         var el = byId("onboarding-modal");
         if (el) el.style.display = "none";
       }
-      function checkOnboarding() {
-  if (!isProfileComplete()) {
-    openOnboarding();
-  } else if (state.pendingJoinRoundId) {
-    tryJoinPendingRound();
+            function checkOnboarding() {
+  /* v2.2.0 (2026-07): 強制オンボーディング廃止
+   * ------------------------------------------------
+   * アプリ起動時にプロフィール登録モーダルを出さない。
+   * 名前登録はスコア入力画面の「あなた」枠タップから行う。
+   * 合流待ちラウンドがあれば、userId 発行を待って合流実行。
+   * ------------------------------------------------ */
+  if (state.pendingJoinRoundId) {
+    waitForUserIdAndJoin();
   }
 }
+
 
 // Phase 4+: URL の ?join= を検出 + localStorage で永続化
 // PWA 起動時は URL パラメータが消えるため localStorage フォールバックを併用
