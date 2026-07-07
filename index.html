@@ -1038,6 +1038,21 @@ html,body{overflow-x:hidden}
         };
         // 共通：招待モーダル表示（QR + 4桁コード 二刀流）
         var openInviteQR = function () {
+          // state.roundId が空なら localStorage から復元を試みる
+          if (!state.roundId) {
+            try {
+              var saved = localStorage.getItem("gl_round_id_v1");
+              if (saved) {
+                state.roundId = saved;
+                console.log("[GL] roundId restored from localStorage:", saved);
+              }
+            } catch (e) {}
+          }
+          // 作成中なら少し待ってリトライ
+          if (!state.roundId && typeof window.__glRoundCreating === "function" && window.__glRoundCreating()) {
+            alert("ラウンド作成中です。もう一度ご短く待ってから押してください");
+            return;
+          }
           if (!state.roundId) {
             alert("先に「ラウンド開始」を押してラウンドを作成してください");
             return;
@@ -1329,30 +1344,35 @@ html,body{overflow-x:hidden}
         bindSegment("gm-rounds", function (v) { state.rounds = v; });
 
         // ラウンド開始・スコアカード
-               on(byId("gm-start"), function () {
+        // フラグ: ラウンド作成中かどうか
+        var roundCreating = false;
+        on(byId("gm-start"), function () {
           if (typeof window.glandApi === "function" && typeof window.glandApiIsConfigured === "function" && window.glandApiIsConfigured()) {
             var userId = (typeof window.glandGetUserId === "function") ? window.glandGetUserId() : "";
+            roundCreating = true;
             window.glandApi("apiStartRound", {
               ownerUserId: userId,
               hostName: (state.profile && state.profile.nickname) || ""
             }).then(function (r) {
-  var newRoundId = r && ((r.data && r.data.roundId) || r.roundId);
-  if (r && r.ok && newRoundId) {
-    state.roundId = newRoundId;
-    try { localStorage.setItem("gl_round_id_v1", newRoundId); } catch (e) {}
-    console.log("[GL] round created:", newRoundId);
-    // ★ ラウンド作成成功後、メンバー一覧を再取得（ホスト自身が並ぶ）
-    if (typeof refreshRoundMembers === "function") refreshRoundMembers();
-  } else {
-    console.warn("[GL] apiStartRound failed:", r && (r.error || "unknown"));
-  }
-
+              var newRoundId = r && ((r.data && r.data.roundId) || r.roundId);
+              if (r && r.ok && newRoundId) {
+                state.roundId = newRoundId;
+                try { localStorage.setItem("gl_round_id_v1", newRoundId); } catch (e) {}
+                console.log("[GL] round created:", newRoundId);
+                if (typeof refreshRoundMembers === "function") refreshRoundMembers();
+              } else {
+                console.warn("[GL] apiStartRound failed:", r && (r.error || "unknown"));
+              }
+              roundCreating = false;
             }).catch(function (e) {
               console.warn("[GL] apiStartRound exception:", e);
+              roundCreating = false;
             });
           }
           showGolfSub("score");
         });
+        // openInviteQR から参照できるよう window に公開
+        window.__glRoundCreating = function () { return roundCreating; };
 
         on(byId("gm-scorecard"), function () { showGolfSub("score"); });
 
@@ -2327,10 +2347,19 @@ function tryJoinPendingRound() {
             if (data.lockerNumber != null) state.lockerNumber = data.lockerNumber;
             if (data.currentHole) state.currentHole = data.currentHole;
             if (data.workingHole) state.workingHole = data.workingHole;
+            // ★ roundId も復元（招待ボタン対策）
+            try {
+              var savedRid = localStorage.getItem("gl_round_id_v1");
+              if (savedRid) {
+                state.roundId = savedRid;
+                console.log("[GL] roundId restored on startup:", savedRid);
+              }
+            } catch (e) {}
             return { restored: true, hadData: true };
           } else {
             // 日付が違う → リセット（ロッカーもクリア）
             localStorage.removeItem(CURRENT_ROUND_KEY);
+            try { localStorage.removeItem("gl_round_id_v1"); } catch (e) {}
             return { restored: false, hadData: true };
           }
         } catch (e) {
