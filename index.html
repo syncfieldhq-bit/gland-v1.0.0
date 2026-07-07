@@ -1070,7 +1070,7 @@ html,body{overflow-x:hidden}
             } catch (e) {}
 
             var diag = "先に「ラウンド開始」を押してください\n\n";
-            diag += "─── 診断情報 v2.4.4 ───\n";
+            diag += "─── 診断情報 v2.4.5 ───\n";
             diag += "state.roundId: " + (state.roundId || "(空)") + "\n";
             diag += "rid-localStorage: " + (savedRid || "(空)") + "\n";
             diag += "API接続: " + (apiConfigured ? "OK" : "NG") + "\n";
@@ -1272,30 +1272,30 @@ html,body{overflow-x:hidden}
 
             // v2.4.1: 同期の診断付きsaveProfile
             var syncResult = "(未実行)";
+            // v2.4.5: 登録成功アラートをサイレント化。失敗時のみアラート。
             var hasSyncFn = (typeof window.glandSyncProfile === "function");
             try {
               saveProfile();
               if (hasSyncFn) {
-                // 同期の結果待ちはしないが、制御は後でログに出す
                 window.glandSyncProfile(state.profile).then(function (r) {
-                  var msg;
                   if (r && r.ok) {
-                    msg = "✅ 登録成功\n\nuserId: " + (r.userId || "?") + "\n" + (r.created ? "(新規作成)" : "(更新)");
                     console.log("[GL] profile synced", r.userId);
+                    // 成功はアラートしない（静かに閉じる）
+                    // ゲスト合流フローなら自動合流をキック
+                    if (state.pendingJoinRoundId && typeof waitForUserIdAndJoin === "function") {
+                      setTimeout(function () { waitForUserIdAndJoin(); }, 200);
+                    }
                   } else {
-                    msg = "⚠️ 登録失敗\n\n" + JSON.stringify(r || {}).substring(0, 300);
                     console.warn("[GL] profile sync failed:", r);
+                    alert("登録に失敗しました\n" + ((r && r.error) || "不明なエラー"));
                   }
-                  alert(msg);
                 }).catch(function (err) {
-                  alert("⚠️ 登録例外\n\n" + (err && err.message || String(err)));
+                  console.warn("[GL] profile sync exception:", err);
+                  alert("登録に失敗しました\n" + (err && err.message || String(err)));
                 });
-              } else {
-                alert("⚠️ window.glandSyncProfileが存在しません\napi.jsが読み込まれていない可能性があります");
               }
             } catch(err) {
               console.warn(err);
-              alert("⚠️ saveProfile例外: " + (err && err.message || String(err)));
             }
 
             // Cookieにも保存（iOS PWA ストレージ分離対策）
