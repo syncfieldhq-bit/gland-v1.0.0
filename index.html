@@ -1070,7 +1070,7 @@ html,body{overflow-x:hidden}
             } catch (e) {}
 
             var diag = "先に「ラウンド開始」を押してください\n\n";
-            diag += "─── 診断情報 v2.4.2 ───\n";
+            diag += "─── 診断情報 v2.4.3 ───\n";
             diag += "state.roundId: " + (state.roundId || "(空)") + "\n";
             diag += "rid-localStorage: " + (savedRid || "(空)") + "\n";
             diag += "API接続: " + (apiConfigured ? "OK" : "NG") + "\n";
@@ -1109,17 +1109,35 @@ html,body{overflow-x:hidden}
             }
           }
 
-          // GASからgroupCode取得（4桁コード）
+          // v2.4.3: stateもしくはlocalStorageに保存済みのgroupCodeを優先利用
+          var disp = document.getElementById("invite-code-display");
+          var cachedGC = state.groupCode || "";
+          if (!cachedGC) {
+            try { cachedGC = localStorage.getItem("gl_group_code_v1") || ""; } catch (e) {}
+          }
+          if (cachedGC) {
+            if (disp) disp.textContent = String(cachedGC).toUpperCase();
+            openModal("invite-code");
+            return;
+          }
+
+          // キャッシュなし → GASに問い合わせ
           if (typeof window.glandApi === "function" && typeof window.glandApiIsConfigured === "function" && window.glandApiIsConfigured()) {
-            var disp = document.getElementById("invite-code-display");
             if (disp) disp.textContent = "----"; // 取得中表示
             openModal("invite-code"); // 先にモーダル表示（QRだけでも使える）
             window.glandApi("apiGetRound", { roundId: state.roundId }).then(function (r) {
-              var code = r && r.data && r.data.groupCode;
+              // v2.4.3: いろいろな形式に対応
+              var code = "";
+              if (r) {
+                code = r.groupCode || (r.data && r.data.groupCode) || (r.round && r.round.groupCode) || (r.data && r.data.round && r.data.round.groupCode) || "";
+              }
               if (!code) {
                 if (disp) disp.textContent = "取得失敗";
+                console.warn("[GL] groupCode not found in response:", r);
                 return;
               }
+              state.groupCode = code;
+              try { localStorage.setItem("gl_group_code_v1", code); } catch (e) {}
               if (disp) disp.textContent = String(code).toUpperCase();
             }).catch(function (e) {
               console.warn("[GL] apiGetRound failed:", e);
@@ -1127,8 +1145,7 @@ html,body{overflow-x:hidden}
             });
           } else {
             // サーバ未接続でもQRだけは出す
-            var disp2 = document.getElementById("invite-code-display");
-            if (disp2) disp2.textContent = "----";
+            if (disp) disp.textContent = "----";
             openModal("invite-code");
           }
         };
@@ -1443,11 +1460,14 @@ html,body{overflow-x:hidden}
               hostName: (state.profile && state.profile.nickname) || ""
             }).then(function (r) {
               var newRoundId = r && ((r.data && r.data.roundId) || r.roundId);
+              var newGroupCode = r && ((r.data && r.data.groupCode) || r.groupCode || "");
               if (r && r.ok && newRoundId) {
                 state.roundId = newRoundId;
+                state.groupCode = newGroupCode; // v2.4.3: apiStartRoundのレスポンスから直接保存
                 try { localStorage.setItem("gl_round_id_v1", newRoundId); } catch (e) {}
-                console.log("[GL] round created:", newRoundId);
-                lastRoundStartResult = "成功: " + newRoundId;
+                try { if (newGroupCode) localStorage.setItem("gl_group_code_v1", newGroupCode); } catch (e) {}
+                console.log("[GL] round created:", newRoundId, " groupCode:", newGroupCode);
+                lastRoundStartResult = "成功: " + newRoundId + " / GC:" + (newGroupCode || "なし");
                 if (typeof refreshRoundMembers === "function") refreshRoundMembers();
               } else {
                 console.warn("[GL] apiStartRound failed:", r);
@@ -2591,6 +2611,8 @@ function tryJoinPendingRound() {
           }
           // ラウンド関連 state を初期化
           state.roundId = "";
+          state.groupCode = ""; // v2.4.3: groupCodeもクリア
+          try { localStorage.removeItem("gl_group_code_v1"); } catch (e) {}
           state.currentHole = 1;
           state.workingHole = 1;
           state.startTime = null;
