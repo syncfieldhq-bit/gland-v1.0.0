@@ -407,7 +407,7 @@ html,body{overflow-x:hidden}
       </button>
       <button class="gl-toolbar__btn gl-toolbar__btn--invite" id="btn-invite">
         <span class="gl-toolbar__btn__icon">👥</span>
-        <span class="gl-toolbar__btn__label">招待QR</span>
+        <span class="gl-toolbar__btn__label">招待</span>
       </button>
       <button class="gl-toolbar__btn gl-toolbar__btn--info" id="btn-display">
         <span class="gl-toolbar__btn__icon">🔢</span>
@@ -588,17 +588,34 @@ html,body{overflow-x:hidden}
       </div>
     </div>
 
-    <!-- ==== 招待コード表示モーダル (4桁) ==== -->
+    <!-- ==== 招待モーダル (QR + 4桁コード 二刀流) ==== -->
     <div id="invite-code-modal" class="gl-modal" style="display:none">
       <div class="gl-modal__backdrop" data-close="invite-code"></div>
-      <div class="gl-modal__panel" style="text-align:center">
+      <div class="gl-modal__panel" style="text-align:center;max-height:90vh;overflow-y:auto">
         <div class="gl-modal__title">👥 ラウンドに招待</div>
-        <div style="font-size:15px;color:#475569;margin:8px 0 16px">同伴者にこの4桁コードを伝えてください</div>
-        <div id="invite-code-display" style="font-size:64px;font-weight:900;letter-spacing:16px;color:#0284c7;background:#f0f9ff;padding:24px;border-radius:16px;border:3px dashed #38bdf8;margin:10px 0;font-family:monospace">----</div>
-        <div style="font-size:12px;color:#94a3b8;margin-top:8px">有効期限: 10分間</div>
-        <div class="gl-modal__actions" style="margin-top:20px">
+
+        <!-- QRコード表示エリア -->
+        <div style="font-size:14px;color:#475569;margin:10px 0 6px;font-weight:bold">📷 QRコードを読み取ってもらう</div>
+        <div style="background:#fff;padding:12px;border-radius:12px;border:2px solid #e2e8f0;display:inline-block;margin:4px 0 8px">
+          <img id="invite-qr-img" src="" alt="招待QR" width="200" height="200" style="display:block">
+          <div id="invite-qr-fallback" style="display:none;padding:40px 20px;color:#94a3b8;font-size:13px">QR画像を生成できませんでした</div>
+        </div>
+        <div style="font-size:11px;color:#94a3b8;margin-bottom:4px;word-break:break-all;padding:0 8px" id="invite-qr-url"></div>
+
+        <!-- 区切り線 -->
+        <div style="border-top:1px dashed #cbd5e1;margin:14px 0 10px;position:relative">
+          <span style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#fff;padding:0 12px;font-size:12px;color:#64748b">または</span>
+        </div>
+
+        <!-- 4桁コード表示エリア -->
+        <div style="font-size:14px;color:#475569;margin:10px 0 6px;font-weight:bold">🔢 4桁コードを伝える</div>
+        <div id="invite-code-display" style="font-size:48px;font-weight:900;letter-spacing:12px;color:#0284c7;background:#f0f9ff;padding:16px;border-radius:12px;border:3px dashed #38bdf8;margin:6px 0;font-family:monospace">----</div>
+        <div style="font-size:12px;color:#94a3b8;margin-top:6px">有効期限: 10分間</div>
+
+        <div class="gl-modal__actions" style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
           <button class="gl-modal__btn gl-modal__btn--ghost" data-close="invite-code">閉じる</button>
-          <button class="gl-modal__btn gl-modal__btn--primary" id="invite-code-copy">📋 コピー</button>
+          <button class="gl-modal__btn gl-modal__btn--primary" id="invite-code-copy">📋 コード</button>
+          <button class="gl-modal__btn gl-modal__btn--primary" id="invite-url-copy">🔗 URL</button>
         </div>
       </div>
     </div>
@@ -1019,37 +1036,66 @@ html,body{overflow-x:hidden}
           var lineUrl = "https://line.me/R/msg/text/?" + encodeURIComponent(text);
           window.open(lineUrl, "_blank");
         };
-        // 共通：招待コード表示（4桁）
+        // 共通：招待モーダル表示（QR + 4桁コード 二刀流）
         var openInviteQR = function () {
           if (!state.roundId) {
             alert("先に「ラウンド開始」を押してラウンドを作成してください");
             return;
           }
-          // GASからgroupCodeを取得
+
+          // 先にQRとURLを描画（groupCode取得より前に表示できる）
+          var inviteUrl = getInviteUrl();
+          var urlBox = document.getElementById("invite-qr-url");
+          if (urlBox) urlBox.textContent = inviteUrl;
+          var qrImg = document.getElementById("invite-qr-img");
+          var qrFallback = document.getElementById("invite-qr-fallback");
+          if (qrImg) {
+            try {
+              if (window.QRCodeMini && typeof window.QRCodeMini.toDataURL === "function") {
+                var dataUrl = window.QRCodeMini.toDataURL(inviteUrl, 200);
+                qrImg.src = dataUrl;
+                qrImg.style.display = "block";
+                if (qrFallback) qrFallback.style.display = "none";
+              } else {
+                qrImg.style.display = "none";
+                if (qrFallback) qrFallback.style.display = "block";
+              }
+            } catch (e) {
+              console.warn("[GL] QR描画失敗:", e);
+              qrImg.style.display = "none";
+              if (qrFallback) qrFallback.style.display = "block";
+            }
+          }
+
+          // GASからgroupCode取得（4桁コード）
           if (typeof window.glandApi === "function" && typeof window.glandApiIsConfigured === "function" && window.glandApiIsConfigured()) {
+            var disp = document.getElementById("invite-code-display");
+            if (disp) disp.textContent = "----"; // 取得中表示
+            openModal("invite-code"); // 先にモーダル表示（QRだけでも使える）
             window.glandApi("apiGetRound", { roundId: state.roundId }).then(function (r) {
               var code = r && r.data && r.data.groupCode;
               if (!code) {
-                alert("招待コードを取得できませんでした");
+                if (disp) disp.textContent = "取得失敗";
                 return;
               }
-              var disp = document.getElementById("invite-code-display");
               if (disp) disp.textContent = String(code).toUpperCase();
-              openModal("invite-code");
             }).catch(function (e) {
               console.warn("[GL] apiGetRound failed:", e);
-              alert("招待コードの取得に失敗しました");
+              if (disp) disp.textContent = "取得失敗";
             });
           } else {
-            alert("サーバ未接続です");
+            // サーバ未接続でもQRだけは出す
+            var disp2 = document.getElementById("invite-code-display");
+            if (disp2) disp2.textContent = "----";
+            openModal("invite-code");
           }
         };
 
-        // 招待コードコピー
+        // 招待コードコピー（4桁）
         on(byId("invite-code-copy"), function () {
           var disp = document.getElementById("invite-code-display");
           var code = disp ? disp.textContent : "";
-          if (code && code !== "----") {
+          if (code && code !== "----" && code !== "取得失敗") {
             if (navigator.clipboard && navigator.clipboard.writeText) {
               navigator.clipboard.writeText(code).then(function(){
                 alert("招待コード " + code + " をコピーしました");
@@ -1058,6 +1104,25 @@ html,body{overflow-x:hidden}
               });
             } else {
               alert("招待コード: " + code);
+            }
+          } else {
+            alert("招待コードがまだ取得できていません");
+          }
+        });
+
+        // 招待URLコピー
+        on(byId("invite-url-copy"), function () {
+          var urlBox = document.getElementById("invite-qr-url");
+          var url = urlBox ? urlBox.textContent : "";
+          if (url) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(url).then(function(){
+                alert("招待URLをコピーしました");
+              }).catch(function(){
+                alert("招待URL: " + url);
+              });
+            } else {
+              alert("招待URL: " + url);
             }
           }
         });
@@ -2606,6 +2671,7 @@ function tryJoinPendingRound() {
         <div style="font-size:11px;color:#94a3b8;text-align:center;margin-top:12px">この登録は初回のみです。後でマイページから変更できます。</div>
       </div>
     </div>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
